@@ -1,7 +1,7 @@
 const { user } = require('../../db/models');
-const config = require('../../config/config.js');
 const crypto = require('crypto');
 const jwt = require('jsonwebtoken');
+require('dotenv').config();
 
 module.exports = {
   post: (req, res) => {
@@ -34,7 +34,7 @@ module.exports = {
 
         let token = jwt.sign(
           { id: data.id, username: username },
-          config.secret,
+          process.env.TOKEN_SECRET_KEY,
           {
             expiresIn: '24h', // expires in 24 hours
           }
