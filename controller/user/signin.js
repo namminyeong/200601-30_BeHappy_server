@@ -1,13 +1,13 @@
 const { user } = require('../../db/models');
-const crypto = require('crypto');
+//const crypto = require('crypto');
 const jwt = require('jsonwebtoken');
 require('dotenv').config();
 
 module.exports = {
   post: (req, res) => {
     const { username, password } = req.body;
-    var shasum = crypto.createHash('sha1');
-    shasum.update(password);
+    //var shasum = crypto.createHash(process.env.TOKEN_HASH);
+    //shasum.update(password);
     //let encryptedPassword = shasum.digest('hex');
 
     user
@@ -40,6 +40,7 @@ module.exports = {
           }
         );
         res.cookie('token', token).status(200).json({
+          token: token,
           id: data.id,
         });
       })
