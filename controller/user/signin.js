@@ -1,14 +1,14 @@
 const { user } = require('../../db/models');
-//const crypto = require('crypto');
+const crypto = require('crypto');
 const jwt = require('jsonwebtoken');
 require('dotenv').config();
 
 module.exports = {
   post: (req, res) => {
     const { username, password } = req.body;
-    //var shasum = crypto.createHash(process.env.TOKEN_HASH);
-    //shasum.update(password);
-    //let encryptedPassword = shasum.digest('hex');
+    var shasum = crypto.createHash(process.env.TOKEN_HASH);
+    shasum.update(password);
+    let encryptedPassword = shasum.digest('hex');
 
     user
       .findOne({
@@ -16,7 +16,7 @@ module.exports = {
           username: username,
         },
       })
-      .then(async (data) => {
+      .then((data) => {
         if (!data) {
           return res
             .status(403)
@@ -25,7 +25,7 @@ module.exports = {
               message: 'unvalid user',
             })
             .send('unvalid user');
-        } else if (password !== data.password) {
+        } else if (encryptedPassword !== data.password) {
           return res.status(403).json({
             errorCode: 2,
             message: 'wrong password',
@@ -45,7 +45,7 @@ module.exports = {
         });
       })
       .catch((err) => {
-        res.status(404).send(err);
+        res.status(400).send(err);
       });
   },
 };
