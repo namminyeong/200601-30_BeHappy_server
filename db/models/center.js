@@ -6,7 +6,11 @@ module.exports = (sequelize, DataTypes) => {
       latitude: DataTypes.FLOAT(9, 6),
       longitude: DataTypes.FLOAT(9, 6),
       centerName: DataTypes.STRING,
-      rateAvg: DataTypes.FLOAT(3, 2),
+      rateAvg: {
+        type: DataTypes.FLOAT(3, 2),
+        defaultValue: 0,
+        allowNull: false,
+      },
     },
     { timestamps: false }
   );

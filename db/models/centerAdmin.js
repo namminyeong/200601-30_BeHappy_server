@@ -9,7 +9,7 @@ module.exports = (sequelize, DataTypes) => {
   );
   centerAdmin.associate = function (models) {
     centerAdmin.hasOne(models.user, {
-      foreignKey: 'center_adminId',
+      foreignKey: 'centerAdminId',
     });
   };
   return centerAdmin;
