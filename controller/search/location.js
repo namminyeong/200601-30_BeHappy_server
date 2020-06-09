@@ -29,7 +29,13 @@ const searchByLocation = async (req, res) => {
       for (let i = 0; i < results.length; i++) {
         results[i]['distance'] = targetCenters[i].distance;
       }
-      res.status(200).json(results);
+      let result = {};
+      result['counseling'] = results.slice(
+        0,
+        counselingCenters.documents.length
+      );
+      result['psychiatric'] = results.slice(counselingCenters.documents.length);
+      res.status(200).json(result);
     });
   } catch (err) {
     res.status(400).send(err);
