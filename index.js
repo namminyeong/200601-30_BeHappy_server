@@ -4,6 +4,7 @@ const bodyParser = require('body-parser');
 const cookieParser = require('cookie-parser');
 const userRouter = require('./routes/user');
 const searchRouter = require('./routes/search');
+const authRouter = require('./routes/auth');
 require('dotenv').config();
 const cors = require('cors');
 
@@ -31,6 +32,7 @@ app.get('/', (req, res) => {
 });
 app.use('/user', userRouter);
 app.use('/search', searchRouter);
+app.use('/auth', authRouter);
 if (process.env.NODE_ENV !== 'production') {
   app.use('/sync', function (req, res) {
     db.sequelize.sync({ force: true });
