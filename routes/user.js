@@ -3,11 +3,11 @@ const router = express.Router();
 const { userController } = require('../controller');
 const utils = require('../modules/utils');
 
-// * POST /user/signin
-router.post('/signin', userController.signin.post);
+// * POST /user/login
+router.post('/login', userController.login.login);
 
-// * GET /user/signout
-router.get('/signout', utils.checkToken, userController.signout.get);
+// * GET /user/logout
+router.get('/logout', utils.checkToken, userController.logout.logout);
 
 // * POST /user/signup
 router.post('/signup', userController.signup.signupForUser);

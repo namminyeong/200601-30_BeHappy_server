@@ -14,7 +14,13 @@ app.use(bodyParser.json());
 app.use(cookieParser());
 app.use(
   cors({
-    origin: ['http://localhost:3000', 'http://localhost:8080'],
+    origin: [
+      'http://localhost:3000',
+      'http://localhost:8080',
+      'http://localhost:19000',
+      'http://localhost:19002',
+      'http://localhost:19006',
+    ],
     method: ['GET', 'POST'],
     credentials: true,
   })
@@ -25,7 +31,7 @@ app.get('/', (req, res) => {
 });
 app.use('/user', userRouter);
 app.use('/search', searchRouter);
-if (process.env.NODE_ENV === 'development') {
+if (process.env.NODE_ENV !== 'production') {
   app.use('/sync', function (req, res) {
     db.sequelize.sync({ force: true });
     console.log('completed database sync with sequelize');

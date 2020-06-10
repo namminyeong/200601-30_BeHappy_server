@@ -9,10 +9,10 @@ module.exports = {
     logging: false,
   },
   test: {
-    username: 'root',
+    username: 'hope',
     password: process.env.DATABASE_PASSWORD,
     database: 'behappy',
-    host: '127.0.0.1',
+    host: 'behappy-database.cno4gcqrinhj.ap-northeast-2.rds.amazonaws.com',
     dialect: 'mysql',
     logging: false,
   },

@@ -1,5 +1,5 @@
 module.exports = {
-  get: (req, res) => {
+  logout: (req, res) => {
     res.cookie('token', '').status(200).json({
       token: '',
       message: 'succeed logout',

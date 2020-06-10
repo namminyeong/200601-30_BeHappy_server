@@ -4,7 +4,7 @@ const jwt = require('jsonwebtoken');
 require('dotenv').config();
 
 module.exports = {
-  post: (req, res) => {
+  login: (req, res) => {
     const { username, password } = req.body;
     var shasum = crypto.createHash(process.env.TOKEN_HASH);
     shasum.update(password);
@@ -39,10 +39,29 @@ module.exports = {
             expiresIn: '24h', // expires in 24 hours
           }
         );
-        res.cookie('token', token).status(200).json({
-          token: token,
-          id: data.id,
-        });
+        console.log(data);
+        if (data.centerAdminId) {
+          if (!data.isCenterAdminPending) {
+            res.cookie('token', token).status(200).json({
+              token: token,
+              id: data.id,
+              isAdmin: true,
+            });
+          } else {
+            res.cookie('token', token).status(200).json({
+              token: token,
+              id: data.id,
+              isAdmin: false,
+              isPending: true,
+            });
+          }
+        } else {
+          res.cookie('token', token).status(200).json({
+            token: token,
+            id: data.id,
+            isAdmin: false,
+          });
+        }
       })
       .catch((err) => {
         res.status(400).send(err);
