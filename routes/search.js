@@ -7,10 +7,10 @@ const { searchController } = require('../controller');
 router.get(
   '/location',
   utils.checkToken,
-  searchController.location.searchByLocation
+  searchController.search.searchByLocation
 );
 
 // * GET /search/name
-router.get('/name', utils.checkToken, searchController.name.searchByName);
+router.get('/name', utils.checkToken, searchController.search.searchByName);
 
 module.exports = router;

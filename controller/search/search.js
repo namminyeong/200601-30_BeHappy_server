@@ -3,7 +3,7 @@ const axios = require('axios');
 const { center } = require('../../db/models');
 
 const searchByLocation = async (req, res) => {
-  const { latitude, longitude, radius } = req.body;
+  const { latitude, longitude, radius } = req.query;
   try {
     const counselingCenters = await getCentersFromKaKao(
       latitude,
@@ -36,6 +36,39 @@ const searchByLocation = async (req, res) => {
       );
       result['psychiatric'] = results.slice(counselingCenters.documents.length);
       res.status(200).json(result);
+    });
+  } catch (err) {
+    res.status(400).send(err);
+  }
+};
+
+const searchByName = async (req, res) => {
+  const { latitude, longitude, keyword } = req.query;
+  let radius = 20000;
+  try {
+    const searchingResult = await getCentersFromKaKao(
+      latitude,
+      longitude,
+      radius,
+      encodeURIComponent(keyword)
+    );
+
+    let targetCenters = searchingResult.documents.filter((ele) => {
+      return (
+        ele.category_name.includes('상담') ||
+        ele.category_name.includes('정신건강의학과')
+      );
+    });
+
+    let promises = [];
+    for (let i = 0; i < targetCenters.length; i++) {
+      promises.push(postCenterInfo(targetCenters[i]));
+    }
+    Promise.all(promises).then((results) => {
+      for (let i = 0; i < results.length; i++) {
+        results[i]['distance'] = targetCenters[i].distance;
+      }
+      res.status(200).json(results);
     });
   } catch (err) {
     res.status(400).send(err);
@@ -80,7 +113,7 @@ const postCenterInfo = (rawInfo) => {
       })
       .spread((result, created) => {
         if (!created) {
-          console.log('center exists');
+          console.log('center exists :', result.dataValues.id);
           return resolve(result.dataValues);
         } else {
           return resolve(result.dataValues);
@@ -92,4 +125,7 @@ const postCenterInfo = (rawInfo) => {
   });
 };
 
-module.exports = { searchByLocation: searchByLocation };
+module.exports = {
+  searchByLocation: searchByLocation,
+  searchByName: searchByName,
+};

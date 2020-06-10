@@ -1,4 +1,3 @@
 module.exports = {
-  location: require('./location'),
-  name: require('./name'),
+  search: require('./search'),
 };
