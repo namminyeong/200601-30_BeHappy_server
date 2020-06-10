@@ -11,6 +11,10 @@ module.exports = (sequelize, DataTypes) => {
     centerAdmin.hasOne(models.user, {
       foreignKey: 'centerAdminId',
     });
+    centerAdmin.belongsTo(models.center, {
+      foreignKey: 'centerId',
+    });
   };
+
   return centerAdmin;
 };

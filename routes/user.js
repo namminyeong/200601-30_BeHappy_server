@@ -15,4 +15,9 @@ router.post('/signup', userController.signup.signupForUser);
 // * POST /user/signup/center
 router.post('/signup/center', userController.signup.signupForCenter);
 
+// * GET /user/admin/request
+router.get('/admin/request', userController.adminRequest.getAdminRequest);
+
+// * POST /user/admin/request
+router.post('/admin/request', userController.adminRequest.postAdminRequest);
 module.exports = router;
