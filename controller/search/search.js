@@ -43,13 +43,12 @@ const searchByLocation = async (req, res) => {
 };
 
 const searchByName = async (req, res) => {
-  const { latitude, longitude, keyword } = req.query;
-  let radius = 20000;
+  const { keyword } = req.query;
   try {
     const searchingResult = await getCentersFromKaKao(
-      latitude,
-      longitude,
-      radius,
+      null,
+      null,
+      null,
       encodeURIComponent(keyword)
     );
 
@@ -65,9 +64,6 @@ const searchByName = async (req, res) => {
       promises.push(postCenterInfo(targetCenters[i]));
     }
     Promise.all(promises).then((results) => {
-      for (let i = 0; i < results.length; i++) {
-        results[i]['distance'] = targetCenters[i].distance;
-      }
       res.status(200).json(results);
     });
   } catch (err) {
@@ -76,16 +72,16 @@ const searchByName = async (req, res) => {
 };
 
 const getCentersFromKaKao = (y, x, radius, encodedKeyword) => {
+  let paramURL = y
+    ? `y=${y}&x=${x}&radius=${radius}&query=${encodedKeyword}`
+    : `query=${encodedKeyword}`;
   return new Promise((resolve, reject) => {
     axios
-      .get(
-        `https://dapi.kakao.com/v2/local/search/keyword.json?y=${y}&x=${x}&radius=${radius}&query=${encodedKeyword}`,
-        {
-          headers: {
-            Authorization: `KakaoAK ${process.env.KAKAO_RESTAPI_KEY}`,
-          },
-        }
-      )
+      .get(`https://dapi.kakao.com/v2/local/search/keyword.json?${paramURL}`, {
+        headers: {
+          Authorization: `KakaoAK ${process.env.KAKAO_RESTAPI_KEY}`,
+        },
+      })
       .then((result) => {
         resolve(result.data);
       })
