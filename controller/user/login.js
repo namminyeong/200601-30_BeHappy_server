@@ -39,29 +39,18 @@ module.exports = {
             expiresIn: '24h', // expires in 24 hours
           }
         );
-        console.log(data);
-        if (data.centerAdminId) {
-          if (!data.isCenterAdminPending) {
-            res.cookie('token', token).status(200).json({
-              token: token,
-              id: data.id,
-              isAdmin: true,
-            });
-          } else {
-            res.cookie('token', token).status(200).json({
-              token: token,
-              id: data.id,
-              isAdmin: false,
-              isPending: true,
-            });
-          }
-        } else {
-          res.cookie('token', token).status(200).json({
-            token: token,
-            id: data.id,
-            isAdmin: false,
-          });
-        }
+
+        let adminState = data.centerAdminId
+          ? !data.isCenterAdminPending
+            ? 1
+            : -1
+          : 0;
+
+        res.cookie('token', token).status(200).json({
+          token: token,
+          id: data.id,
+          adminState: adminState,
+        });
       })
       .catch((err) => {
         res.status(400).send(err);
