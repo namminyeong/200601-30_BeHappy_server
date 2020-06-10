@@ -16,13 +16,19 @@ module.exports = (sequelize, DataTypes) => {
       timestamps: false,
       hooks: {
         afterValidate: (data) => {
-          var shasum = crypto.createHash(process.env.TOKEN_HASH);
-          shasum.update(data.password);
-          data.password = shasum.digest('hex');
+          if (data.password) {
+            var shasum = crypto.createHash(process.env.TOKEN_HASH);
+            shasum.update(data.password);
+            data.password = shasum.digest('hex');
+          }
         },
       },
     }
   );
-
+  user.associate = function (models) {
+    user.belongsTo(models.centerAdmin, {
+      foreignKey: 'centerAdminId',
+    });
+  };
   return user;
 };
