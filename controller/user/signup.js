@@ -2,7 +2,7 @@ const { user, centerAdmin, center } = require('../../db/models');
 const db = require('../../db/models');
 
 const signupForUser = (req, res) => {
-  const { username, password } = req.body;
+  const { username, password, nickname, phone } = req.body;
   user
     .findOrCreate({
       where: {
@@ -10,6 +10,8 @@ const signupForUser = (req, res) => {
       },
       defaults: {
         password: password,
+        nickname: nickname,
+        phone: phone,
       },
     })
     .spread((result, created) => {
@@ -34,6 +36,7 @@ const signupForCenter = async (req, res) => {
     latitude,
     longitude,
     centerName,
+    phone,
     businessNumber,
   } = req.body;
 
@@ -43,7 +46,8 @@ const signupForCenter = async (req, res) => {
         t,
         latitude,
         longitude,
-        centerName
+        centerName,
+        phone
       );
 
       const resultPostCenterAdmin = await postCenterAdmin(
@@ -71,7 +75,8 @@ const signupForCenter = async (req, res) => {
   });
 };
 
-const postCenter = (t, latitude, longitude, centerName) => {
+const postCenter = (t, latitude, longitude, centerName, phone) => {
+  // adressName, roadAddressName 어떻게 넣지?
   return new Promise((resolve, reject) => {
     center
       .findOrCreate({
@@ -79,6 +84,9 @@ const postCenter = (t, latitude, longitude, centerName) => {
           latitude: latitude,
           longitude: longitude,
           centerName: centerName,
+        },
+        defaults: {
+          phone: phone,
         },
         transaction: t,
       })
