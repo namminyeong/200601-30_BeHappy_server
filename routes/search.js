@@ -4,11 +4,7 @@ const utils = require('../modules/utils');
 const { searchController } = require('../controller');
 
 // * GET /search
-router.get(
-  '/',
-  utils.checkToken,
-  searchController.search.searchCentersForAddress
-);
+router.get('/', searchController.search.searchCentersForAddress);
 
 // * GET /search/location
 router.get(
