@@ -57,19 +57,31 @@ const searchByName = async (req, res) => {
       encodeURIComponent(keyword)
     );
 
-    let targetCenters = searchingResult.documents.filter((ele) => {
-      return (
-        ele.category_name.includes('상담') ||
-        ele.category_name.includes('정신건강의학과')
-      );
+    const counselingCenters = searchingResult.documents.filter((ele) => {
+      return ele.category_name.includes('상담');
     });
+
+    const PsychiatricHospitals = searchingResult.documents.filter((ele) => {
+      return ele.category_name.includes('정신건강의학과');
+    });
+
+    const targetCenters = counselingCenters.concat(PsychiatricHospitals);
 
     let promises = [];
     for (let i = 0; i < targetCenters.length; i++) {
       promises.push(postCenterInfo(targetCenters[i]));
     }
     Promise.all(promises).then((results) => {
-      res.status(200).json(filterCentersWithTags(results, tagArr));
+      let result = {};
+      result['counseling'] = filterCentersWithTags(
+        results.slice(0, counselingCenters.length),
+        tagArr
+      );
+      result['psychiatric'] = filterCentersWithTags(
+        results.slice(counselingCenters.length),
+        tagArr
+      );
+      res.status(200).json(result);
     });
   } catch (err) {
     res.status(400).send(err);
