@@ -19,7 +19,7 @@ const searchByLocation = async (req, res) => {
       encodeURIComponent('정신과')
     );
 
-    let targetCenters = counselingCenters.documents.concat(
+    const targetCenters = counselingCenters.documents.concat(
       PsychiatricHospitals.documents
     );
     let promises = [];
@@ -76,7 +76,7 @@ const searchByName = async (req, res) => {
   }
 };
 
-const getCentersFromKaKao = (y, x, radius, encodedKeyword) => {
+const getCentersFromKaKao = (y, x, radius = 20000, encodedKeyword) => {
   let paramURL = y
     ? `y=${y}&x=${x}&radius=${radius}&query=${encodedKeyword}`
     : `query=${encodedKeyword}`;
@@ -115,7 +115,7 @@ const postCenterInfo = (rawInfo) => {
       })
       .spread((result, created) => {
         if (!created) {
-          console.log('center exists :', result.dataValues.id);
+          console.log('center exists :', result.id);
           return resolve(result.dataValues);
         } else {
           return resolve(result.dataValues);
@@ -138,7 +138,46 @@ const filterCentersWithTags = (centers, tags) => {
   return result;
 };
 
+const searchCentersForAddress = async (req, res) => {
+  const { latitude, longitude } = req.query;
+  let radius = 20000;
+  try {
+    const counselingCenters = await getCentersFromKaKao(
+      latitude,
+      longitude,
+      radius,
+      encodeURIComponent('심리상담소')
+    );
+    const PsychiatricHospitals = await getCentersFromKaKao(
+      latitude,
+      longitude,
+      radius,
+      encodeURIComponent('정신과')
+    );
+
+    const targetCenters = counselingCenters.documents.concat(
+      PsychiatricHospitals.documents
+    );
+
+    const results = targetCenters.map((ele) => {
+      return {
+        latitude: ele.y,
+        longitude: ele.x,
+        centerName: ele.place_name,
+        addressName: ele.address_name,
+        roadAddressName: ele.road_address_name,
+        phone: ele.phone,
+      };
+    });
+
+    res.status(200).json(results);
+  } catch (err) {
+    res.status(400).send(err);
+  }
+};
+
 module.exports = {
   searchByLocation: searchByLocation,
   searchByName: searchByName,
+  searchCentersForAddress: searchCentersForAddress,
 };
