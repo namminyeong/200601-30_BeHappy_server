@@ -36,6 +36,8 @@ const signupForCenter = async (req, res) => {
     latitude,
     longitude,
     centerName,
+    addressName,
+    roadAddressName,
     phone,
     businessNumber,
   } = req.body;
@@ -47,6 +49,8 @@ const signupForCenter = async (req, res) => {
         latitude,
         longitude,
         centerName,
+        addressName,
+        roadAddressName,
         phone
       );
 
@@ -75,27 +79,34 @@ const signupForCenter = async (req, res) => {
   });
 };
 
-const postCenter = (t, latitude, longitude, centerName, phone) => {
-  // adressName, roadAddressName 어떻게 넣지?
+const postCenter = (
+  t,
+  latitude,
+  longitude,
+  centerName,
+  addressName,
+  roadAddressName,
+  phone
+) => {
   return new Promise((resolve, reject) => {
     center
       .findOrCreate({
         where: {
-          latitude: latitude,
-          longitude: longitude,
+          roadAddressName: roadAddressName,
           centerName: centerName,
         },
         defaults: {
+          latitude: latitude,
+          longitude: longitude,
+          addressName: addressName,
           phone: phone,
         },
         transaction: t,
       })
       .spread((result, created) => {
         if (!created) {
-          return reject({
-            errorCode: 4,
-            message: 'center exists',
-          });
+          console.log('center exists :', result.id);
+          return resolve({ centerId: result.id });
         } else {
           return resolve({ centerId: result.id });
         }

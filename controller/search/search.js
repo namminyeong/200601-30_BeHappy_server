@@ -19,7 +19,7 @@ const searchByLocation = async (req, res) => {
       encodeURIComponent('정신과')
     );
 
-    let targetCenters = counselingCenters.documents.concat(
+    const targetCenters = counselingCenters.documents.concat(
       PsychiatricHospitals.documents
     );
     let promises = [];
@@ -57,26 +57,38 @@ const searchByName = async (req, res) => {
       encodeURIComponent(keyword)
     );
 
-    let targetCenters = searchingResult.documents.filter((ele) => {
-      return (
-        ele.category_name.includes('상담') ||
-        ele.category_name.includes('정신건강의학과')
-      );
+    const counselingCenters = searchingResult.documents.filter((ele) => {
+      return ele.category_name.includes('상담');
     });
+
+    const PsychiatricHospitals = searchingResult.documents.filter((ele) => {
+      return ele.category_name.includes('정신건강의학과');
+    });
+
+    const targetCenters = counselingCenters.concat(PsychiatricHospitals);
 
     let promises = [];
     for (let i = 0; i < targetCenters.length; i++) {
       promises.push(postCenterInfo(targetCenters[i]));
     }
     Promise.all(promises).then((results) => {
-      res.status(200).json(filterCentersWithTags(results, tagArr));
+      let result = {};
+      result['counseling'] = filterCentersWithTags(
+        results.slice(0, counselingCenters.length),
+        tagArr
+      );
+      result['psychiatric'] = filterCentersWithTags(
+        results.slice(counselingCenters.length),
+        tagArr
+      );
+      res.status(200).json(result);
     });
   } catch (err) {
     res.status(400).send(err);
   }
 };
 
-const getCentersFromKaKao = (y, x, radius, encodedKeyword) => {
+const getCentersFromKaKao = (y, x, radius = 20000, encodedKeyword) => {
   let paramURL = y
     ? `y=${y}&x=${x}&radius=${radius}&query=${encodedKeyword}`
     : `query=${encodedKeyword}`;
@@ -115,7 +127,7 @@ const postCenterInfo = (rawInfo) => {
       })
       .spread((result, created) => {
         if (!created) {
-          console.log('center exists :', result.dataValues.id);
+          console.log('center exists :', result.id);
           return resolve(result.dataValues);
         } else {
           return resolve(result.dataValues);
@@ -138,7 +150,46 @@ const filterCentersWithTags = (centers, tags) => {
   return result;
 };
 
+const searchCentersForAddress = async (req, res) => {
+  const { latitude, longitude } = req.query;
+  let radius = 20000;
+  try {
+    const counselingCenters = await getCentersFromKaKao(
+      latitude,
+      longitude,
+      radius,
+      encodeURIComponent('심리상담소')
+    );
+    const PsychiatricHospitals = await getCentersFromKaKao(
+      latitude,
+      longitude,
+      radius,
+      encodeURIComponent('정신과')
+    );
+
+    const targetCenters = counselingCenters.documents.concat(
+      PsychiatricHospitals.documents
+    );
+
+    const results = targetCenters.map((ele) => {
+      return {
+        latitude: ele.y,
+        longitude: ele.x,
+        centerName: ele.place_name,
+        addressName: ele.address_name,
+        roadAddressName: ele.road_address_name,
+        phone: ele.phone,
+      };
+    });
+
+    res.status(200).json(results);
+  } catch (err) {
+    res.status(400).send(err);
+  }
+};
+
 module.exports = {
   searchByLocation: searchByLocation,
   searchByName: searchByName,
+  searchCentersForAddress: searchCentersForAddress,
 };
