@@ -43,6 +43,7 @@ const postAdminRequest = async (req, res) => {
       {
         where: {
           id: userId,
+          centerAdminId: { ne: null },
         },
       }
     )
