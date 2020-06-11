@@ -1,7 +1,9 @@
 require('dotenv').config();
 const { user, centerAdmin, center } = require('../../db/models');
+const sequelize = require('sequelize');
+const Op = sequelize.Op;
 
-const getAdminRequest = async (req, res) => {
+const getAdminRequest = (req, res) => {
   user
     .findAll({
       where: {
@@ -34,16 +36,21 @@ const getAdminRequest = async (req, res) => {
 };
 
 const postAdminRequest = async (req, res) => {
-  const { userId } = req.body;
+  const { userId, isAcceptance } = req.body;
+  const findResult = await user.findOne({
+    attributes: ['centerAdminId'],
+    where: { id: userId },
+  });
   user
     .update(
       {
         isCenterAdminPending: false,
+        centerAdminId: !isAcceptance ? null : findResult.centerAdminId,
       },
       {
         where: {
           id: userId,
-          centerAdminId: { ne: null },
+          centerAdminId: { [Op.not]: null },
         },
       }
     )
