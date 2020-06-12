@@ -11,7 +11,8 @@ module.exports = (sequelize, DataTypes) => {
     { timestamps: false }
   );
   specialty.associate = function (models) {
-    specialty.hasMany(models.userAndSpecialty, {
+    specialty.belongsToMany(models.user, {
+      through: 'userAndSpecialty',
       foreignKey: 'specialtyId',
     });
   };

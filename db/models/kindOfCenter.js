@@ -11,8 +11,9 @@ module.exports = (sequelize, DataTypes) => {
     { timestamps: false }
   );
   kindOfCenter.associate = function (models) {
-    kindOfCenter.hasMany(models.userAndKindOfCenter, {
-      foreignKey: 'kindsOfCenterId',
+    kindOfCenter.belongsToMany(models.user, {
+      through: 'userAndKindOfCenter',
+      foreignKey: 'kindOfCenterId',
     });
   };
 

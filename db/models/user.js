@@ -32,10 +32,12 @@ module.exports = (sequelize, DataTypes) => {
     user.belongsTo(models.city, {
       foreignKey: 'cityId',
     });
-    user.hasMany(models.userAndKindOfCenter, {
+    user.belongsToMany(models.kindOfCenter, {
+      through: 'userAndKindOfCenter',
       foreignKey: 'userId',
     });
-    user.hasMany(models.userAndSpecialty, {
+    user.belongsToMany(models.specialty, {
+      through: 'userAndSpecialty',
       foreignKey: 'userId',
     });
   };
