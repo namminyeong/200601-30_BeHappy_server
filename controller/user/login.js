@@ -1,4 +1,4 @@
-const { user } = require('../../db/models');
+const { user, centerAdmin, center } = require('../../db/models');
 const crypto = require('crypto');
 const jwt = require('jsonwebtoken');
 require('dotenv').config();
@@ -15,6 +15,16 @@ module.exports = {
         where: {
           username: username,
         },
+        include: [
+          {
+            model: centerAdmin,
+            include: [
+              {
+                model: center,
+              },
+            ],
+          },
+        ],
       })
       .then((data) => {
         if (!data) {
@@ -46,11 +56,25 @@ module.exports = {
             : -1
           : 0;
 
-        res.cookie('token', token).status(200).json({
-          token: token,
-          id: data.id,
-          adminState: adminState,
-        });
+        let name = data.centerAdmin
+          ? data.centerAdmin.center.centerName
+          : data.nickname;
+        let phone = data.centerAdmin
+          ? data.centerAdmin.center.phone
+          : data.phone;
+
+        res
+          .cookie('token', token)
+          .status(200)
+          .json({
+            token: token,
+            adminState: adminState,
+            userInfo: {
+              id: data.id,
+              name: name,
+              phone: phone,
+            },
+          });
       })
       .catch((err) => {
         res.status(400).send(err);
