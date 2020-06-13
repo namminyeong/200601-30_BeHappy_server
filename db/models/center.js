@@ -21,9 +21,6 @@ module.exports = (sequelize, DataTypes) => {
     center.hasOne(models.centerAdmin, {
       foreignKey: 'centerId',
     });
-    center.hasMany(models.tag, {
-      foreignKey: 'centerId',
-    });
     center.belongsToMany(models.specialty, {
       through: 'centerAndSpecialty',
       foreignKey: 'centerId',
