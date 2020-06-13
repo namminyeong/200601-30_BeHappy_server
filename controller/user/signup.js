@@ -21,7 +21,7 @@ const signupForUser = (req, res) => {
           message: 'username exists',
         });
       } else {
-        res.status(200).send('complete signup!');
+        res.status(200).send({ userId: result.id });
       }
     })
     .catch((err) => {
@@ -68,7 +68,12 @@ const signupForCenter = async (req, res) => {
       );
 
       t.commit();
-      res.status(200).send(resultPostUserForCenter);
+      res
+        .status(200)
+        .send({
+          userId: resultPostUserForCenter.userId,
+          centerId: resultPostCenter.centerId,
+        });
     } catch (err) {
       if (err.errorCode) {
         res.status(409).json(err);
@@ -166,7 +171,7 @@ const PostUserForCenter = (t, username, password, centerAdminId) => {
             message: 'username exists',
           });
         } else {
-          return resolve('complete signup!');
+          return resolve({ userId: result.id });
         }
       })
       .catch((err) => {
