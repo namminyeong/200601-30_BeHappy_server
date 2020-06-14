@@ -1,6 +1,6 @@
 const { bookmark } = require('../../db/models');
 
-const postBookmark = async (req, res) => {
+const postBookmark = (req, res) => {
   const { centerId } = req.body;
   const { id } = req.decoded;
 
@@ -26,6 +26,25 @@ const postBookmark = async (req, res) => {
     });
 };
 
+const deleteBookmark = async (req, res) => {
+  const { centerId } = req.body;
+  const { id } = req.decoded;
+
+  let result = await bookmark.destroy({
+    where: {
+      userId: id,
+      centerId: centerId,
+    },
+  });
+
+  if (result) {
+    res.status(200).json('complete delete bookmark!');
+  } else {
+    res.status(200).json('there is no record for it');
+  }
+};
+
 module.exports = {
   postBookmark: postBookmark,
+  deleteBookmark: deleteBookmark,
 };

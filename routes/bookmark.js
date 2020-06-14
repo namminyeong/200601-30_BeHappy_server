@@ -6,4 +6,11 @@ const { bookmarkController } = require('../controller');
 // * POST /bookmark
 router.post('/', utils.checkToken, bookmarkController.bookmark.postBookmark);
 
+// * DELETE /bookmark
+router.delete(
+  '/',
+  utils.checkToken,
+  bookmarkController.bookmark.deleteBookmark
+);
+
 module.exports = router;
