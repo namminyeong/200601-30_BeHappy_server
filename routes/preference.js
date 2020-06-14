@@ -14,6 +14,11 @@ router.get(
 );
 
 // * PATCH /preference
+router.patch(
+  '/',
+  utils.checkToken,
+  preferenceController.preference.patchPreferenceForUser
+);
 
 // * POST /preference/center
 router.post('/center', preferenceController.preference.postPreferenceForCenter);
@@ -24,6 +29,12 @@ router.get(
   utils.checkToken,
   preferenceController.preference.getPreferenceForCenter
 );
+
 // * PATCH /preference/center
+router.patch(
+  '/center',
+  utils.checkToken,
+  preferenceController.preference.patchPreferenceForCenter
+);
 
 module.exports = router;

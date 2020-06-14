@@ -28,7 +28,6 @@ const postPreferenceForUser = async (req, res) => {
       Promise.all(promisesSpecialty);
 
       const resultFindKindOfCenters = await findKindOfCenter(t, kindOfCenters);
-
       let promisesKindOfCenters = [];
       for (let i = 0; i < resultFindKindOfCenters.length; i++) {
         promisesKindOfCenters.push(
@@ -39,6 +38,7 @@ const postPreferenceForUser = async (req, res) => {
 
       const resultFindCity = await findCity(t, city);
       await postCity(t, userId, resultFindCity);
+
       t.commit();
       res.status(200).json('complete post preference!');
     } catch (err) {
@@ -291,9 +291,62 @@ const getPreferenceForCenter = (req, res) => {
     });
 };
 
+const patchPreferenceForUser = async (req, res) => {
+  const { specialties, kindOfCenters, city } = req.body;
+  const { id } = req.decoded;
+
+  db.sequelize.transaction().then(async (t) => {
+    try {
+      await userAndSpecialty.destroy({
+        where: {
+          userId: id,
+        },
+        transaction: t,
+      });
+      const resultFindSpecialties = await findSpecialties(t, specialties);
+      let promisesSpecialty = [];
+      for (let i = 0; i < resultFindSpecialties.length; i++) {
+        promisesSpecialty.push(
+          postUserAndSpecialty(t, id, resultFindSpecialties[i])
+        );
+      }
+      Promise.all(promisesSpecialty);
+
+      await userAndKindOfCenter.destroy({
+        where: {
+          userId: id,
+        },
+        transaction: t,
+      });
+      const resultFindKindOfCenters = await findKindOfCenter(t, kindOfCenters);
+      let promisesKindOfCenters = [];
+      for (let i = 0; i < resultFindKindOfCenters.length; i++) {
+        promisesKindOfCenters.push(
+          postUserAndKindOfCenter(t, id, resultFindKindOfCenters[i])
+        );
+      }
+      Promise.all(promisesKindOfCenters);
+
+      const resultFindCity = await findCity(t, city);
+      await postCity(t, id, resultFindCity);
+
+      t.commit();
+      res.status(200).json('complete modify preference!');
+    } catch (err) {
+      res.status(400).json(err);
+    }
+  });
+};
+
+const patchPreferenceForCenter = (req, res) => {
+  res.status(200).json('complete modify preference!');
+};
+
 module.exports = {
   postPreferenceForUser: postPreferenceForUser,
   postPreferenceForCenter: postPreferenceForCenter,
   getPreferenceForUser: getPreferenceForUser,
   getPreferenceForCenter: getPreferenceForCenter,
+  patchPreferenceForUser: patchPreferenceForUser,
+  patchPreferenceForCenter: patchPreferenceForCenter,
 };
