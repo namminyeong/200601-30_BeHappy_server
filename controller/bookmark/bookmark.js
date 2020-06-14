@@ -1,4 +1,4 @@
-const { bookmark } = require('../../db/models');
+const { bookmark, user, center } = require('../../db/models');
 
 const postBookmark = (req, res) => {
   const { centerId } = req.body;
@@ -44,7 +44,25 @@ const deleteBookmark = async (req, res) => {
   }
 };
 
+const getBookmark = async (req, res) => {
+  const { id } = req.decoded;
+
+  user
+    .findOne({
+      attributes: ['id'],
+      where: { id: id },
+      include: [{ model: center }],
+    })
+    .then((data) => {
+      res.status(200).json(data);
+    })
+    .catch((err) => {
+      res.status(400).json(err);
+    });
+};
+
 module.exports = {
   postBookmark: postBookmark,
   deleteBookmark: deleteBookmark,
+  getBookmark: getBookmark,
 };

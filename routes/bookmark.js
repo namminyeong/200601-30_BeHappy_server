@@ -13,4 +13,7 @@ router.delete(
   bookmarkController.bookmark.deleteBookmark
 );
 
+// * GET /bookmark
+router.get('/', utils.checkToken, bookmarkController.bookmark.getBookmark);
+
 module.exports = router;
