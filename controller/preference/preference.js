@@ -6,6 +6,8 @@ const {
   city,
   user,
   centerAndSpecialty,
+  centerAdmin,
+  center,
 } = require('../../db/models');
 const db = require('../../db/models');
 const sequelize = require('sequelize');
@@ -253,8 +255,45 @@ const getPreferenceForUser = (req, res) => {
     });
 };
 
+const getPreferenceForCenter = (req, res) => {
+  const { id } = req.decoded;
+  user
+    .findOne({
+      attributes: ['id'],
+      where: { id: id },
+      include: [
+        {
+          model: centerAdmin,
+          attributes: ['id'],
+          include: [
+            {
+              model: center,
+              attributes: ['id'],
+              include: [
+                {
+                  model: specialty,
+                  attributes: ['name'],
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    })
+    .then((data) => {
+      const result = data.centerAdmin.center.specialties.map((ele) => {
+        return { name: ele.name };
+      });
+      res.status(200).json({ specialties: result });
+    })
+    .catch((err) => {
+      res.status(400).json(err);
+    });
+};
+
 module.exports = {
   postPreferenceForUser: postPreferenceForUser,
   postPreferenceForCenter: postPreferenceForCenter,
   getPreferenceForUser: getPreferenceForUser,
+  getPreferenceForCenter: getPreferenceForCenter,
 };
