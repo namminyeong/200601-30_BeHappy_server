@@ -5,14 +5,14 @@ const {
   userAndKindOfCenter,
   city,
   user,
+  centerAndSpecialty,
 } = require('../../db/models');
 const db = require('../../db/models');
 const sequelize = require('sequelize');
 const Op = sequelize.Op;
 
 const postPreferenceForUser = async (req, res) => {
-  const { specialties, kindOfCenters, city } = req.body;
-  const { id } = req.decoded;
+  const { userId, specialties, kindOfCenters, city } = req.body;
 
   db.sequelize.transaction().then(async (t) => {
     try {
@@ -20,7 +20,7 @@ const postPreferenceForUser = async (req, res) => {
       let promisesSpecialty = [];
       for (let i = 0; i < resultFindSpecialties.length; i++) {
         promisesSpecialty.push(
-          postUserAndSpecialty(t, id, resultFindSpecialties[i])
+          postUserAndSpecialty(t, userId, resultFindSpecialties[i])
         );
       }
       Promise.all(promisesSpecialty);
@@ -30,13 +30,13 @@ const postPreferenceForUser = async (req, res) => {
       let promisesKindOfCenters = [];
       for (let i = 0; i < resultFindKindOfCenters.length; i++) {
         promisesKindOfCenters.push(
-          postUserAndKindOfCenter(t, id, resultFindKindOfCenters[i])
+          postUserAndKindOfCenter(t, userId, resultFindKindOfCenters[i])
         );
       }
       Promise.all(promisesKindOfCenters);
 
       const resultFindCity = await findCity(t, city);
-      await postCity(t, id, resultFindCity);
+      await postCity(t, userId, resultFindCity);
       t.commit();
       res.status(200).json('complete post preference!');
     } catch (err) {
@@ -46,7 +46,25 @@ const postPreferenceForUser = async (req, res) => {
 };
 
 const postPreferenceForCenter = async (req, res) => {
-  res.status(200).json('');
+  const { centerId, specialties } = req.body;
+
+  db.sequelize.transaction().then(async (t) => {
+    try {
+      const resultFindSpecialties = await findSpecialties(t, specialties);
+      let promisesSpecialty = [];
+      for (let i = 0; i < resultFindSpecialties.length; i++) {
+        promisesSpecialty.push(
+          postCenterAndSpecialty(t, centerId, resultFindSpecialties[i])
+        );
+      }
+      Promise.all(promisesSpecialty).then(() => {
+        t.commit();
+      });
+      res.status(200).json('complete post preference!');
+    } catch (err) {
+      res.status(400).json(err);
+    }
+  });
 };
 
 const findSpecialties = (t, specialties) => {
@@ -181,6 +199,32 @@ const postCity = (t, userId, cityId) => {
           return resolve(`userId ${userId}'s cityId is changed`);
         } else {
           return resolve('nothing changed');
+        }
+      })
+      .catch((err) => {
+        reject(err);
+      });
+  });
+};
+
+const postCenterAndSpecialty = (t, centerId, specialtyId) => {
+  return new Promise((resolve, reject) => {
+    centerAndSpecialty
+      .findOrCreate({
+        where: {
+          centerId: centerId,
+          specialtyId: specialtyId,
+        },
+        transaction: t,
+      })
+      .spread((result, created) => {
+        if (!created) {
+          console.log(
+            `center and specialty exists. specialtyId : ${result.specialtyId}, centerId : ${result.centerId}`
+          );
+          return resolve(result);
+        } else {
+          return resolve(result);
         }
       })
       .catch((err) => {

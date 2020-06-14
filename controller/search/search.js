@@ -1,6 +1,6 @@
 require('dotenv').config();
 const axios = require('axios');
-const { center, tag } = require('../../db/models');
+const { center, specialty } = require('../../db/models');
 
 const searchByLocation = async (req, res) => {
   const { latitude, longitude, radius, tags } = req.query;
@@ -113,7 +113,7 @@ const postCenterInfo = (rawInfo) => {
   return new Promise((resolve, reject) => {
     center
       .findOrCreate({
-        include: [{ model: tag, attributes: ['name'] }],
+        include: [{ model: specialty, attributes: ['name'] }],
         where: {
           roadAddressName: road_address_name,
           centerName: place_name,
@@ -128,9 +128,9 @@ const postCenterInfo = (rawInfo) => {
       .spread((result, created) => {
         if (!created) {
           console.log('center exists :', result.id);
-          return resolve(result.dataValues);
+          return resolve(result);
         } else {
-          return resolve(result.dataValues);
+          return resolve(result);
         }
       })
       .catch((err) => {
@@ -142,8 +142,9 @@ const postCenterInfo = (rawInfo) => {
 const filterCentersWithTags = (centers, tags) => {
   if (!tags) return centers;
   const result = centers.filter((ele) => {
-    for (let i = 0; i < ele.tags.length; i++) {
-      if (tags.includes(ele.tags[i].name)) return true;
+    if (!ele.specialties) return false;
+    for (let i = 0; i < ele.specialties.length; i++) {
+      if (tags.includes(ele.specialties[i].name)) return true;
     }
     return false;
   });

@@ -15,6 +15,10 @@ module.exports = (sequelize, DataTypes) => {
       through: 'userAndSpecialty',
       foreignKey: 'specialtyId',
     });
+    specialty.belongsToMany(models.center, {
+      through: 'centerAndSpecialty',
+      foreignKey: 'specialtyId',
+    });
   };
 
   return specialty;
