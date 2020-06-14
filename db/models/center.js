@@ -24,6 +24,10 @@ module.exports = (sequelize, DataTypes) => {
     center.hasMany(models.tag, {
       foreignKey: 'centerId',
     });
+    center.belongsToMany(models.user, {
+      through: 'bookmark',
+      foreignKey: 'centerId',
+    });
   };
   return center;
 };
