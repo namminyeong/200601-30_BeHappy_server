@@ -3,4 +3,5 @@ module.exports = {
   searchController: require('./search'),
   authController: require('./auth'),
   preferenceController: require('./preference'),
+  bookmarkController: require('./bookmark'),
 };
