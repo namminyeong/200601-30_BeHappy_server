@@ -233,7 +233,28 @@ const postCenterAndSpecialty = (t, centerId, specialtyId) => {
   });
 };
 
+const getPreferenceForUser = (req, res) => {
+  const { id } = req.decoded;
+  user
+    .findOne({
+      attributes: ['id'],
+      where: { id: id },
+      include: [
+        { model: specialty, attributes: ['name'] },
+        { model: kindOfCenter, attributes: ['name'] },
+        { model: city, attributes: ['name'] },
+      ],
+    })
+    .then((data) => {
+      res.status(200).json(data);
+    })
+    .catch((err) => {
+      res.status(400).json(err);
+    });
+};
+
 module.exports = {
   postPreferenceForUser: postPreferenceForUser,
   postPreferenceForCenter: postPreferenceForCenter,
+  getPreferenceForUser: getPreferenceForUser,
 };
