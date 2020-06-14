@@ -255,36 +255,21 @@ const getPreferenceForUser = (req, res) => {
     });
 };
 
-const getPreferenceForCenter = (req, res) => {
+const getPreferenceForCenter = async (req, res) => {
   const { id } = req.decoded;
-  user
+
+  const centerId = await getCenterIdByUserId(null, id);
+  center
     .findOne({
       attributes: ['id'],
-      where: { id: id },
-      include: [
-        {
-          model: centerAdmin,
-          attributes: ['id'],
-          include: [
-            {
-              model: center,
-              attributes: ['id'],
-              include: [
-                {
-                  model: specialty,
-                  attributes: ['name'],
-                },
-              ],
-            },
-          ],
-        },
-      ],
+      where: { id: centerId },
+      include: [{ model: specialty }],
     })
     .then((data) => {
-      const result = data.centerAdmin.center.specialties.map((ele) => {
+      let results = data.specialties.map((ele) => {
         return { name: ele.name };
       });
-      res.status(200).json({ specialties: result });
+      res.status(200).json({ specialties: results });
     })
     .catch((err) => {
       res.status(400).json(err);
@@ -339,7 +324,64 @@ const patchPreferenceForUser = async (req, res) => {
 };
 
 const patchPreferenceForCenter = (req, res) => {
-  res.status(200).json('complete modify preference!');
+  const { specialties } = req.body;
+  const { id } = req.decoded;
+
+  db.sequelize.transaction().then(async (t) => {
+    try {
+      const centerId = await getCenterIdByUserId(t, id);
+      await centerAndSpecialty.destroy({
+        where: {
+          centerId: centerId,
+        },
+        transaction: t,
+      });
+
+      const resultFindSpecialties = await findSpecialties(t, specialties);
+      let promisesSpecialty = [];
+      for (let i = 0; i < resultFindSpecialties.length; i++) {
+        promisesSpecialty.push(
+          postCenterAndSpecialty(t, centerId, resultFindSpecialties[i])
+        );
+      }
+      Promise.all(promisesSpecialty).then(() => {
+        t.commit();
+      });
+
+      res.status(200).json('complete modify preference!');
+    } catch (err) {
+      res.status(400).json(err);
+    }
+  });
+};
+
+const getCenterIdByUserId = (t, userId) => {
+  return new Promise((resolve, reject) => {
+    user
+      .findOne({
+        attributes: ['id'],
+        where: { id: userId },
+        include: [
+          {
+            model: centerAdmin,
+            attributes: ['id'],
+            include: [
+              {
+                model: center,
+                attributes: ['id'],
+              },
+            ],
+          },
+        ],
+        transaction: t,
+      })
+      .then((data) => {
+        resolve(data.centerAdmin.center.id);
+      })
+      .catch((err) => {
+        reject(err);
+      });
+  });
 };
 
 module.exports = {
