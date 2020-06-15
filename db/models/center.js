@@ -10,12 +10,12 @@ module.exports = (sequelize, DataTypes) => {
       roadAddressName: DataTypes.STRING,
       phone: DataTypes.STRING,
       rateAvg: {
-        type: DataTypes.FLOAT(3, 2),
+        type: DataTypes.FLOAT(2, 1),
         defaultValue: 0,
         allowNull: false,
       },
     },
-    { timestamps: false, charset: 'utf8', collate: 'utf8_unicode_ci' }
+    { timestamps: false }
   );
   center.associate = function (models) {
     center.hasOne(models.centerAdmin, {
@@ -27,6 +27,9 @@ module.exports = (sequelize, DataTypes) => {
     });
     center.belongsToMany(models.user, {
       through: 'bookmark',
+      foreignKey: 'centerId',
+    });
+    center.hasMany(models.anonymousUser, {
       foreignKey: 'centerId',
     });
   };

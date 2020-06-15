@@ -19,6 +19,10 @@ module.exports = (sequelize, DataTypes) => {
       through: 'centerAndSpecialty',
       foreignKey: 'specialtyId',
     });
+    specialty.belongsToMany(models.review, {
+      through: 'reviewAndSpecialty',
+      foreignKey: 'specialtyId',
+    });
   };
 
   return specialty;

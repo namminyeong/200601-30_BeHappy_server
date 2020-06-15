@@ -44,6 +44,9 @@ module.exports = (sequelize, DataTypes) => {
       through: 'bookmark',
       foreignKey: 'userId',
     });
+    user.hasMany(models.anonymousUser, {
+      foreignKey: 'userId',
+    });
   };
   return user;
 };
