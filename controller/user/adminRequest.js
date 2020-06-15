@@ -1,7 +1,6 @@
 require('dotenv').config();
 const { user, centerAdmin, center } = require('../../db/models');
-const sequelize = require('sequelize');
-const Op = sequelize.Op;
+const { Op } = require('sequelize');
 
 const getAdminRequest = (req, res) => {
   user

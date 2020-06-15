@@ -6,8 +6,13 @@ const { reviewController } = require('../controller');
 // * POST /review
 router.post('/', utils.checkToken, reviewController.review.postReview);
 
-// * GET /bookmark
+// * GET /review
+router.get('/', utils.checkToken, reviewController.review.getReviewByUserId);
+
+// * GET /review/center
+//router.get('/center', utils.checkToken, reviewController.review.getReviewByUserId);
+
 // * PATCH /review
-// * DELETE /bookmark
+// * DELETE /review
 
 module.exports = router;

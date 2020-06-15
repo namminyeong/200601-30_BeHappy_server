@@ -10,8 +10,7 @@ const {
   center,
 } = require('../../db/models');
 const db = require('../../db/models');
-const sequelize = require('sequelize');
-const Op = sequelize.Op;
+const { Op } = require('sequelize');
 
 const postPreferenceForUser = async (req, res) => {
   const { userId, specialties, kindOfCenters, city } = req.body;

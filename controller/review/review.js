@@ -3,6 +3,7 @@ const {
   review,
   reviewAndSpecialty,
   specialty,
+  center,
 } = require('../../db/models');
 const db = require('../../db/models');
 const { Op } = require('sequelize');
@@ -210,6 +211,43 @@ const findSpecialties = (t, specialties) => {
   });
 };
 
+const getReviewByUserId = (req, res) => {
+  const { id } = req.decoded;
+
+  review
+    .findAll({
+      include: [
+        {
+          model: anonymousUser,
+          where: { userId: id },
+          include: [{ model: center, include: [{ model: specialty }] }],
+        },
+      ],
+    })
+    .then((data) => {
+      const results = data.map((ele) => {
+        return {
+          reviewId: ele.id,
+          date: ele.date,
+          rate: ele.rate,
+          content: ele.content,
+          anonymousName: ele.anonymousUser.anonymousName,
+          centerName: ele.anonymousUser.center.centerName,
+          specialties: ele.anonymousUser.center.specialties.map((ele2) => {
+            return {
+              name: ele2.name,
+            };
+          }),
+        };
+      });
+      res.status(200).json(results);
+    })
+    .catch((err) => {
+      res.status(400).json(err);
+    });
+};
+
 module.exports = {
   postReview: postReview,
+  getReviewByUserId: getReviewByUserId,
 };
