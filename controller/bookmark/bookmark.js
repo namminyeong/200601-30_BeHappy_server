@@ -11,14 +11,15 @@ const postBookmark = (req, res) => {
         centerId: centerId,
       },
     })
-    .spread((result, created) => {
+    .spread(async (result, created) => {
+      const center = await findCenter(result.centerId);
       if (!created) {
         console.log(
           `bookmark exists. centerId : ${result.centerId}, userId : ${result.userId}`
         );
-        res.status(200).json('complete post bookmark!');
+        res.status(200).json(center);
       } else {
-        res.status(200).json('complete post bookmark!');
+        res.status(200).json(center);
       }
     })
     .catch((err) => {
@@ -76,6 +77,36 @@ const getBookmark = async (req, res) => {
     .catch((err) => {
       res.status(400).json(err);
     });
+};
+
+const findCenter = (centerId) => {
+  return new Promise((resolve, reject) => {
+    center
+      .findOne({
+        where: { id: centerId },
+        include: [{ model: specialty }],
+      })
+      .then((data) => {
+        resolve({
+          id: data.id,
+          latitude: data.latitude,
+          longitude: data.longitude,
+          centerName: data.centerName,
+          addressName: data.addressName,
+          roadAddressName: data.roadAddressName,
+          phone: data.phone,
+          rateAvg: data.rateAvg,
+          specialties: data.specialties.map((ele) => {
+            return {
+              name: ele.name,
+            };
+          }),
+        });
+      })
+      .catch((err) => {
+        reject(err);
+      });
+  });
 };
 
 module.exports = {
