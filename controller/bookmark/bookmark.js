@@ -63,6 +63,7 @@ const getBookmark = async (req, res) => {
           addressName: ele.addressName,
           roadAddressName: ele.roadAddressName,
           phone: ele.phone,
+          rateAvg: ele.rateAvg,
           specialties: ele.specialties.map((ele2) => {
             return {
               name: ele2.name,
@@ -70,11 +71,7 @@ const getBookmark = async (req, res) => {
           }),
         };
       });
-      const result = {
-        id: data.id,
-        centers: newCenters,
-      };
-      res.status(200).json(result);
+      res.status(200).json({ centers: newCenters });
     })
     .catch((err) => {
       res.status(400).json(err);
