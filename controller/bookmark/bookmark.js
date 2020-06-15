@@ -1,4 +1,4 @@
-const { bookmark, user, center } = require('../../db/models');
+const { bookmark, user, center, specialty } = require('../../db/models');
 
 const postBookmark = (req, res) => {
   const { centerId } = req.body;
@@ -51,10 +51,30 @@ const getBookmark = async (req, res) => {
     .findOne({
       attributes: ['id'],
       where: { id: id },
-      include: [{ model: center }],
+      include: [{ model: center, include: [{ model: specialty }] }],
     })
     .then((data) => {
-      res.status(200).json(data);
+      const newCenters = data.centers.map((ele) => {
+        return {
+          id: ele.id,
+          latitude: ele.latitude,
+          longitude: ele.longitude,
+          centerName: ele.centerName,
+          addressName: ele.addressName,
+          roadAddressName: ele.roadAddressName,
+          phone: ele.phone,
+          specialties: ele.specialties.map((ele2) => {
+            return {
+              name: ele2.name,
+            };
+          }),
+        };
+      });
+      const result = {
+        id: data.id,
+        centers: newCenters,
+      };
+      res.status(200).json(result);
     })
     .catch((err) => {
       res.status(400).json(err);
