@@ -1,4 +1,5 @@
 'use strict';
+const moment = require('moment');
 module.exports = (sequelize, DataTypes) => {
   const review = sequelize.define(
     'review',
@@ -10,9 +11,12 @@ module.exports = (sequelize, DataTypes) => {
       },
       content: DataTypes.TEXT,
       date: {
-        type: DataTypes.DATE,
+        type: DataTypes.DATEONLY,
         defaultValue: DataTypes.NOW,
         allowNull: false,
+        get: function () {
+          return moment.utc(this.getDataValue('date')).format('YYYY-MM-DD');
+        },
       },
     },
     { timestamps: false }
