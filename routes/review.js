@@ -10,7 +10,11 @@ router.post('/', utils.checkToken, reviewController.review.postReview);
 router.get('/', utils.checkToken, reviewController.review.getReviewByUserId);
 
 // * GET /review/center
-//router.get('/center', utils.checkToken, reviewController.review.getReviewByUserId);
+router.get(
+  '/center',
+  utils.checkToken,
+  reviewController.review.getReviewByCenterId
+);
 
 // * PATCH /review
 // * DELETE /review

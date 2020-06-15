@@ -228,7 +228,43 @@ const getReviewByUserId = (req, res) => {
       const results = data.map((ele) => {
         return {
           reviewId: ele.id,
-          date: ele.date,
+          date: ele.date, // 진료날짜로 바꿔야 하나?
+          rate: ele.rate,
+          content: ele.content,
+          anonymousName: ele.anonymousUser.anonymousName,
+          centerName: ele.anonymousUser.center.centerName,
+          specialties: ele.anonymousUser.center.specialties.map((ele2) => {
+            return {
+              name: ele2.name,
+            };
+          }),
+        };
+      });
+      res.status(200).json(results);
+    })
+    .catch((err) => {
+      res.status(400).json(err);
+    });
+};
+
+const getReviewByCenterId = (req, res) => {
+  const { centerId } = req.query;
+
+  review
+    .findAll({
+      include: [
+        {
+          model: anonymousUser,
+          where: { centerId: centerId },
+          include: [{ model: center, include: [{ model: specialty }] }],
+        },
+      ],
+    })
+    .then((data) => {
+      const results = data.map((ele) => {
+        return {
+          reviewId: ele.id,
+          date: ele.date, // 진료날짜로 바꿔야 하나?
           rate: ele.rate,
           content: ele.content,
           anonymousName: ele.anonymousUser.anonymousName,
@@ -250,4 +286,5 @@ const getReviewByUserId = (req, res) => {
 module.exports = {
   postReview: postReview,
   getReviewByUserId: getReviewByUserId,
+  getReviewByCenterId: getReviewByCenterId,
 };
