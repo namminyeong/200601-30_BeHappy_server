@@ -4,4 +4,5 @@ module.exports = {
   authController: require('./auth'),
   preferenceController: require('./preference'),
   bookmarkController: require('./bookmark'),
+  reviewController: require('./review'),
 };

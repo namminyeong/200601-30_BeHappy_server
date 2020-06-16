@@ -10,8 +10,8 @@ const {
   center,
 } = require('../../db/models');
 const db = require('../../db/models');
-const sequelize = require('sequelize');
-const Op = sequelize.Op;
+const { Op } = require('sequelize');
+const { syncSpecialtyFromReviewToCenter } = require('../review/review');
 
 const postPreferenceForUser = async (req, res) => {
   const { userId, specialties, kindOfCenters, city } = req.body;
@@ -344,7 +344,8 @@ const patchPreferenceForCenter = (req, res) => {
           postCenterAndSpecialty(t, centerId, resultFindSpecialties[i])
         );
       }
-      Promise.all(promisesSpecialty).then(() => {
+      Promise.all(promisesSpecialty).then(async () => {
+        await syncSpecialtyFromReviewToCenter(t, centerId);
         t.commit();
       });
 
@@ -391,4 +392,5 @@ module.exports = {
   getPreferenceForCenter: getPreferenceForCenter,
   patchPreferenceForUser: patchPreferenceForUser,
   patchPreferenceForCenter: patchPreferenceForCenter,
+  postCenterAndSpecialty: postCenterAndSpecialty,
 };
