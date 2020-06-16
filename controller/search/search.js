@@ -144,7 +144,7 @@ const postCenterInfo = (rawInfo) => {
           addressName: result.addressName,
           roadAddressName: result.roadAddressName,
           phone: result.phone,
-          rateAvg: result.rateAvg,
+          rateAvg: result.rateAvg.toFixed(1),
           specialties: result.specialties
             ? result.specialties.map((ele) => {
                 return {
