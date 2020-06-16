@@ -145,11 +145,13 @@ const postCenterInfo = (rawInfo) => {
           roadAddressName: result.roadAddressName,
           phone: result.phone,
           rateAvg: result.rateAvg,
-          specialties: result.specialties.map((ele) => {
-            return {
-              name: ele.name,
-            };
-          }),
+          specialties: result.specialties
+            ? result.specialties.map((ele) => {
+                return {
+                  name: ele.name,
+                };
+              })
+            : [],
         };
         if (!created) {
           console.log('center exists :', result.id);

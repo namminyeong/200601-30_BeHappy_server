@@ -4,10 +4,10 @@ const {
   reviewAndSpecialty,
   specialty,
   center,
+  centerAndSpecialty,
 } = require('../../db/models');
 const db = require('../../db/models');
 const { Op } = require('sequelize');
-const { postCenterAndSpecialty } = require('../preference/preference');
 
 const postReview = (req, res) => {
   const { centerId, rate, content, specialties } = req.body;
@@ -378,6 +378,32 @@ const syncSpecialtyFromReviewToCenter = async (t, centerId) => {
     promises.push(postCenterAndSpecialty(t, centerId, arrTotalSpecialties[i]));
   }
   Promise.all(promises);
+};
+
+const postCenterAndSpecialty = (t, centerId, specialtyId) => {
+  return new Promise((resolve, reject) => {
+    centerAndSpecialty
+      .findOrCreate({
+        where: {
+          centerId: centerId,
+          specialtyId: specialtyId,
+        },
+        transaction: t,
+      })
+      .spread((result, created) => {
+        if (!created) {
+          console.log(
+            `center and specialty exists. specialtyId : ${result.specialtyId}, centerId : ${result.centerId}`
+          );
+          return resolve(result);
+        } else {
+          return resolve(result);
+        }
+      })
+      .catch((err) => {
+        reject(err);
+      });
+  });
 };
 
 module.exports = {

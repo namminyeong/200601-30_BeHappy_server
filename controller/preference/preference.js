@@ -392,5 +392,4 @@ module.exports = {
   getPreferenceForCenter: getPreferenceForCenter,
   patchPreferenceForUser: patchPreferenceForUser,
   patchPreferenceForCenter: patchPreferenceForCenter,
-  postCenterAndSpecialty: postCenterAndSpecialty,
 };
