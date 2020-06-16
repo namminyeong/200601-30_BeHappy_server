@@ -10,7 +10,7 @@ module.exports = (sequelize, DataTypes) => {
       roadAddressName: DataTypes.STRING,
       phone: DataTypes.STRING,
       rateAvg: {
-        type: DataTypes.FLOAT(2, 1),
+        type: DataTypes.FLOAT,
         defaultValue: 0,
         allowNull: false,
       },

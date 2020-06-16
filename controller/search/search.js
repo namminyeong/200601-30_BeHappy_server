@@ -37,7 +37,7 @@ const searchByLocation = async (req, res) => {
     }
     Promise.all(promises).then(async (results) => {
       for (let i = 0; i < results.length; i++) {
-        results[i].dataValues['distance'] = targetCenters[i].distance;
+        results[i]['distance'] = targetCenters[i].distance;
       }
       let result = {};
       result['counseling'] = filterCentersWithTags(
@@ -136,11 +136,26 @@ const postCenterInfo = (rawInfo) => {
         },
       })
       .spread((result, created) => {
+        const prettierResult = {
+          id: result.id,
+          latitude: result.latitude,
+          longitude: result.longitude,
+          centerName: result.centerName,
+          addressName: result.addressName,
+          roadAddressName: result.roadAddressName,
+          phone: result.phone,
+          rateAvg: result.rateAvg,
+          specialties: result.specialties.map((ele) => {
+            return {
+              name: ele.name,
+            };
+          }),
+        };
         if (!created) {
           console.log('center exists :', result.id);
-          return resolve(result);
+          return resolve(prettierResult);
         } else {
-          return resolve(result);
+          return resolve(prettierResult);
         }
       })
       .catch((err) => {
@@ -199,7 +214,6 @@ const searchCentersForAddress = async (req, res) => {
   }
 };
 
-// 중요도 검사 함수
 const getImportance = async (centers, userId) => {
   const userSpetialties = await getUserSpecialties(userId);
   const userKindOfCenters = await getUserKindOfCenters(userId);
@@ -215,7 +229,7 @@ const getImportance = async (centers, userId) => {
       userKindOfCenters,
       cityNames
     );
-    ele.dataValues['importance'] = Math.floor(importance);
+    ele['importance'] = Math.floor(importance);
   }
 
   for (let index = 0; index < centers.psychiatric.length; index++) {
@@ -227,7 +241,7 @@ const getImportance = async (centers, userId) => {
       userKindOfCenters,
       cityNames
     );
-    ele.dataValues['importance'] = Math.floor(importance);
+    ele['importance'] = Math.floor(importance);
   }
 
   return centers;
@@ -305,7 +319,11 @@ const getCityName = (userId) => {
         include: [{ model: city }],
       })
       .then((data) => {
-        resolve(data.city.name);
+        if (data.city) {
+          resolve(data.city.name);
+        } else {
+          resolve('');
+        }
       })
       .catch((err) => {
         reject(err);

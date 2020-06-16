@@ -7,6 +7,7 @@ const {
 } = require('../../db/models');
 const db = require('../../db/models');
 const { Op } = require('sequelize');
+const { postCenterAndSpecialty } = require('../preference/preference');
 
 const postReview = (req, res) => {
   const { centerId, rate, content, specialties } = req.body;
@@ -30,16 +31,91 @@ const postReview = (req, res) => {
       let promises = [];
       for (let i = 0; i < resultFindSpecialties.length; i++) {
         promises.push(
-          postReviewAndSpecialty(t, centerId, resultFindSpecialties[i])
+          postReviewAndSpecialty(t, resultReview.id, resultFindSpecialties[i])
         );
       }
-      Promise.all(promises).then(() => {
+      Promise.all(promises).then(async () => {
+        await syncSpecialtyFromReviewToCenter(t, centerId);
+
+        const resultArrayOfReview = await getArrayOfReviewByCenterId(
+          t,
+          centerId
+        );
+        await applyRateAvgOnCenter(
+          t,
+          centerId,
+          resultArrayOfReview[0].centerRateAvg,
+          rate,
+          resultArrayOfReview.length
+        );
         t.commit();
       });
+
       res.status(200).json(resultReview);
     } catch (err) {
       res.status(400).json(err);
     }
+  });
+};
+
+const applyRateAvgOnCenter = (t, centerId, prevAvg, newRate, listLength) => {
+  return new Promise((resolve, reject) => {
+    const oldWeight = (listLength - 1) / listLength;
+    const newWeight = 1 / listLength;
+    const newAvg = prevAvg * oldWeight + newRate * newWeight;
+    center
+      .update(
+        {
+          rateAvg: newAvg,
+        },
+        {
+          where: { id: centerId },
+          transaction: t,
+        }
+      )
+      .then((result) => {
+        if (result[0] !== 0) {
+          console.log(
+            `centerId ${centerId}'s rateAvg is changed with ${newAvg}`
+          );
+        } else {
+          console.log('nothing changed');
+        }
+        resolve();
+      })
+      .catch((err) => {
+        reject(err);
+      });
+  });
+};
+
+const getArrayOfReviewByCenterId = (t, centerId) => {
+  return new Promise((resolve, reject) => {
+    review
+      .findAll({
+        include: [
+          {
+            model: anonymousUser,
+            where: { centerId: centerId },
+            include: [{ model: center }],
+          },
+          { model: specialty },
+        ],
+        transaction: t,
+      })
+      .then((data) => {
+        const results = data.map((ele) => {
+          return {
+            reviewId: ele.id,
+            centerRateAvg: ele.anonymousUser.center.rateAvg,
+            specialties: ele.specialties.map((ele2) => ele2.id),
+          };
+        });
+        resolve(results);
+      })
+      .catch((err) => {
+        reject(err);
+      });
   });
 };
 
@@ -223,8 +299,9 @@ const getReviewByUserId = (req, res) => {
         {
           model: anonymousUser,
           where: { userId: id },
-          include: [{ model: center, include: [{ model: specialty }] }],
+          include: [{ model: center }],
         },
+        { model: specialty },
       ],
     })
     .then((data) => {
@@ -236,7 +313,7 @@ const getReviewByUserId = (req, res) => {
           content: ele.content,
           anonymousName: ele.anonymousUser.anonymousName,
           centerName: ele.anonymousUser.center.centerName,
-          specialties: ele.anonymousUser.center.specialties.map((ele2) => {
+          specialties: ele.specialties.map((ele2) => {
             return {
               name: ele2.name,
             };
@@ -286,8 +363,26 @@ const getReviewByCenterId = (req, res) => {
     });
 };
 
+const syncSpecialtyFromReviewToCenter = async (t, centerId) => {
+  const resultArrayOfReview = await getArrayOfReviewByCenterId(t, centerId);
+  const setTotalSpecialties = resultArrayOfReview.reduce((pre, cur) => {
+    cur.specialties.forEach((ele) => {
+      pre.add(ele);
+    });
+    return pre;
+  }, new Set([]));
+  const arrTotalSpecialties = Array.from(setTotalSpecialties);
+
+  let promises = [];
+  for (let i = 0; i < arrTotalSpecialties.length; i++) {
+    promises.push(postCenterAndSpecialty(t, centerId, arrTotalSpecialties[i]));
+  }
+  Promise.all(promises);
+};
+
 module.exports = {
   postReview: postReview,
   getReviewByUserId: getReviewByUserId,
   getReviewByCenterId: getReviewByCenterId,
+  syncSpecialtyFromReviewToCenter: syncSpecialtyFromReviewToCenter,
 };
