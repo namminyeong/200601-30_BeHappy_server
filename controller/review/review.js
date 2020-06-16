@@ -136,6 +136,9 @@ const makeAnonymousName = () => {
     '씩씩한',
     '용기있는',
     '리듬타는',
+    '와글와글',
+    '우르르쾅쾅',
+    '번쩍이는',
   ];
   const nounList = ['고양이', '고래', '곰', '토끼', '다람쥐', '호랑이', '하마'];
   const randomAdjectiveIdx = Math.floor(Math.random() * adjectiveList.length);

@@ -1,9 +1,18 @@
 require('dotenv').config();
 const axios = require('axios');
-const { center, specialty } = require('../../db/models');
+const {
+  center,
+  specialty,
+  user,
+  review,
+  anonymousUser,
+  kindOfCenter,
+  city,
+} = require('../../db/models');
 
 const searchByLocation = async (req, res) => {
   const { latitude, longitude, radius, tags } = req.query;
+  const { id } = req.decoded;
   const tagArr = tags ? tags.split(',') : '';
   try {
     const counselingCenters = await getCentersFromKaKao(
@@ -26,9 +35,9 @@ const searchByLocation = async (req, res) => {
     for (let i = 0; i < targetCenters.length; i++) {
       promises.push(postCenterInfo(targetCenters[i]));
     }
-    Promise.all(promises).then((results) => {
+    Promise.all(promises).then(async (results) => {
       for (let i = 0; i < results.length; i++) {
-        results[i]['distance'] = targetCenters[i].distance;
+        results[i].dataValues['distance'] = targetCenters[i].distance;
       }
       let result = {};
       result['counseling'] = filterCentersWithTags(
@@ -39,7 +48,7 @@ const searchByLocation = async (req, res) => {
         results.slice(counselingCenters.documents.length),
         tagArr
       );
-      res.status(200).json(result);
+      res.status(200).json(await getImportance(result, id));
     });
   } catch (err) {
     res.status(400).send(err);
@@ -48,6 +57,7 @@ const searchByLocation = async (req, res) => {
 
 const searchByName = async (req, res) => {
   const { keyword, tags } = req.query;
+  const { id } = req.decoded;
   const tagArr = tags ? tags.split(',') : '';
   try {
     const searchingResult = await getCentersFromKaKao(
@@ -71,7 +81,7 @@ const searchByName = async (req, res) => {
     for (let i = 0; i < targetCenters.length; i++) {
       promises.push(postCenterInfo(targetCenters[i]));
     }
-    Promise.all(promises).then((results) => {
+    Promise.all(promises).then(async (results) => {
       let result = {};
       result['counseling'] = filterCentersWithTags(
         results.slice(0, counselingCenters.length),
@@ -81,7 +91,7 @@ const searchByName = async (req, res) => {
         results.slice(counselingCenters.length),
         tagArr
       );
-      res.status(200).json(result);
+      res.status(200).json(await getImportance(result, id));
     });
   } catch (err) {
     res.status(400).send(err);
@@ -187,6 +197,142 @@ const searchCentersForAddress = async (req, res) => {
   } catch (err) {
     res.status(400).send(err);
   }
+};
+
+// 중요도 검사 함수
+const getImportance = async (centers, userId) => {
+  const userSpetialties = await getUserSpecialties(userId);
+  const userKindOfCenters = await getUserKindOfCenters(userId);
+  const userCityName = await getCityName(userId);
+  const cityNames = userCityName.split(' ');
+
+  for (let index = 0; index < centers.counseling.length; index++) {
+    let ele = centers.counseling[index];
+    const importance = await getImportanceByCenter(
+      ele,
+      '심리상담소',
+      userSpetialties,
+      userKindOfCenters,
+      cityNames
+    );
+    ele.dataValues['importance'] = Math.floor(importance);
+  }
+
+  for (let index = 0; index < centers.psychiatric.length; index++) {
+    let ele = centers.psychiatric[index];
+    const importance = await getImportanceByCenter(
+      ele,
+      '정신과',
+      userSpetialties,
+      userKindOfCenters,
+      cityNames
+    );
+    ele.dataValues['importance'] = Math.floor(importance);
+  }
+
+  return centers;
+};
+
+const getImportanceByCenter = async (
+  center,
+  kindOfCenter,
+  userSpetialties,
+  userKindOfCenters,
+  cityNames
+) => {
+  let importance = 0;
+  for (let i = 0; i < center.specialties.length; i++) {
+    if (userSpetialties.includes(center.specialties[i].name)) {
+      importance += 0.5;
+      break;
+    }
+  }
+  if (userKindOfCenters.includes(kindOfCenter)) {
+    importance += 0.5;
+  }
+  for (let i = 0; i < cityNames.length; i++) {
+    if (center.addressName.includes(cityNames[i])) {
+      importance += 0.5;
+      break;
+    }
+  }
+  const reviews = await getReviewByCenterId(center.id);
+  if (reviews.length >= 3 && center.rateAvg >= 4) {
+    importance += 0.5;
+  }
+  return importance;
+};
+
+const getUserSpecialties = (userId) => {
+  return new Promise((resolve, reject) => {
+    user
+      .findOne({
+        where: { id: userId },
+        include: [{ model: specialty }],
+      })
+      .then((data) => {
+        const result = data.specialties.map((ele) => ele.name);
+        resolve(result);
+      })
+      .catch((err) => {
+        reject(err);
+      });
+  });
+};
+
+const getUserKindOfCenters = (userId) => {
+  return new Promise((resolve, reject) => {
+    user
+      .findOne({
+        where: { id: userId },
+        include: [{ model: kindOfCenter }],
+      })
+      .then((data) => {
+        const result = data.kindOfCenters.map((ele) => ele.name);
+        resolve(result);
+      })
+      .catch((err) => {
+        reject(err);
+      });
+  });
+};
+
+const getCityName = (userId) => {
+  return new Promise((resolve, reject) => {
+    user
+      .findOne({
+        where: { id: userId },
+        include: [{ model: city }],
+      })
+      .then((data) => {
+        resolve(data.city.name);
+      })
+      .catch((err) => {
+        reject(err);
+      });
+  });
+};
+
+const getReviewByCenterId = (centerId) => {
+  return new Promise((resolve, reject) => {
+    review
+      .findAll({
+        include: [
+          {
+            model: anonymousUser,
+            where: { centerId: centerId },
+            include: [{ model: center, include: [{ model: specialty }] }],
+          },
+        ],
+      })
+      .then((data) => {
+        const results = data.map((ele) => ele.id);
+        resolve(results);
+      })
+      .catch((err) => {
+        reject(err);
+      });
+  });
 };
 
 module.exports = {
