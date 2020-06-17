@@ -312,6 +312,7 @@ const getReviewByUserId = (req, res) => {
           rate: ele.rate,
           content: ele.content,
           anonymousName: ele.anonymousUser.anonymousName,
+          centerId: ele.anonymousUser.center.id,
           centerName: ele.anonymousUser.center.centerName,
           specialties: ele.specialties.map((ele2) => {
             return {
@@ -336,8 +337,9 @@ const getReviewByCenterId = (req, res) => {
         {
           model: anonymousUser,
           where: { centerId: centerId },
-          include: [{ model: center, include: [{ model: specialty }] }],
+          include: [{ model: center }],
         },
+        { model: specialty },
       ],
     })
     .then((data) => {
@@ -349,7 +351,7 @@ const getReviewByCenterId = (req, res) => {
           content: ele.content,
           anonymousName: ele.anonymousUser.anonymousName,
           centerName: ele.anonymousUser.center.centerName,
-          specialties: ele.anonymousUser.center.specialties.map((ele2) => {
+          specialties: ele.specialties.map((ele2) => {
             return {
               name: ele2.name,
             };
