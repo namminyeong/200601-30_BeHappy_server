@@ -9,6 +9,7 @@ const preferenceRouter = require('./routes/preference');
 const bookmarkRouter = require('./routes/bookmark');
 const reviewRouter = require('./routes/review');
 const bookingRouter = require('./routes/booking');
+const centerRouter = require('./routes/center');
 require('dotenv').config();
 const cors = require('cors');
 
@@ -41,6 +42,7 @@ app.use('/preference', preferenceRouter);
 app.use('/bookmark', bookmarkRouter);
 app.use('/review', reviewRouter);
 app.use('/booking', bookingRouter);
+app.use('/center', centerRouter);
 if (process.env.NODE_ENV !== 'production') {
   app.use('/sync', function (req, res) {
     db.sequelize.sync({ force: true });

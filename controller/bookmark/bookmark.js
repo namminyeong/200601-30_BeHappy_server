@@ -79,6 +79,7 @@ const getBookmark = async (req, res) => {
     });
 };
 
+// center.js에 있는 걸 사용하도록 리팩토링
 const findCenter = (centerId) => {
   return new Promise((resolve, reject) => {
     center
