@@ -90,6 +90,7 @@ const getArrayOfReviewByCenterId = (t, centerId) => {
   return new Promise((resolve, reject) => {
     review
       .findAll({
+        where: { isDeleted: false },
         include: [
           {
             model: anonymousUser,
@@ -292,6 +293,7 @@ const getReviewByUserId = (req, res) => {
 
   review
     .findAll({
+      where: { isDeleted: false },
       include: [
         {
           model: anonymousUser,
@@ -326,6 +328,7 @@ const getReviewByCenterId = (req, res) => {
 
   review
     .findAll({
+      where: { isDeleted: false },
       include: [
         {
           model: anonymousUser,
@@ -411,7 +414,10 @@ const modifyReview = (req, res) => {
   const { reviewId, centerId, rate, content, specialties } = req.body;
   db.sequelize.transaction().then(async (t) => {
     try {
-      await updateReview(t, reviewId, rate, content);
+      const updateResult = await updateReview(t, reviewId, rate, content);
+      if (updateResult === 'nothing changed') {
+        return res.status(200).json(updateResult);
+      }
 
       await reviewAndSpecialty.destroy({
         where: {
@@ -459,6 +465,7 @@ const updateReview = (t, reviewId, rate, content) => {
         {
           where: {
             id: reviewId,
+            isDeleted: false,
           },
           transaction: t,
         }
@@ -476,10 +483,36 @@ const updateReview = (t, reviewId, rate, content) => {
   });
 };
 
+const deleteReview = (req, res) => {
+  const { reviewId } = req.body;
+  review
+    .update(
+      {
+        isDeleted: true,
+      },
+      {
+        where: {
+          id: reviewId,
+        },
+      }
+    )
+    .then((result) => {
+      if (result[0] !== 0) {
+        res.status(200).json(`reviewId ${reviewId} is deleted`);
+      } else {
+        res.status(200).json('nothing changed');
+      }
+    })
+    .catch((err) => {
+      res.status(400).json(err);
+    });
+};
+
 module.exports = {
   postReview: postReview,
   getReviewByUserId: getReviewByUserId,
   getReviewByCenterId: getReviewByCenterId,
   syncSpecialtyFromReviewToCenter: syncSpecialtyFromReviewToCenter,
   modifyReview: modifyReview,
+  deleteReview: deleteReview,
 };
