@@ -36,6 +36,43 @@ const postBooking = (req, res) => {
     });
 };
 
+const getBookingListByCenterId = (req, res) => {
+  const { centerId, date } = req.query;
+
+  booking
+    .findAll({
+      attributes: [
+        'id',
+        'date',
+        'time',
+        'name',
+        'phone',
+        'content',
+        'bookingState',
+        'usedDate',
+        'usedTime',
+      ],
+      where: {
+        centerId: centerId,
+        date: date,
+      },
+    })
+    .then((data) => {
+      if (data.length > 0) {
+        res.status(200).json(data);
+      } else {
+        res.status(403).json({
+          errorCode: 8,
+          message: 'there is no booking.',
+        });
+      }
+    })
+    .catch((err) => {
+      res.status(400).json(err);
+    });
+};
+
 module.exports = {
   postBooking: postBooking,
+  getBookingListByCenterId: getBookingListByCenterId,
 };

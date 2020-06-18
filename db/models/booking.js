@@ -23,6 +23,19 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.TEXT,
         allowNull: false,
       },
+      bookingState: {
+        type: DataTypes.ENUM('booked', 'used', 'notUsed', 'reviewed'),
+        defaultValue: 'booked',
+        allowNull: false,
+      },
+      usedDate: {
+        type: DataTypes.DATEONLY,
+        allowNull: true,
+      },
+      usedTime: {
+        type: DataTypes.TIME,
+        allowNull: true,
+      },
     },
     { timestamps: false }
   );
