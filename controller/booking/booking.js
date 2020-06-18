@@ -1,4 +1,5 @@
 const { booking } = require('../../db/models');
+const moment = require('moment');
 
 const postBooking = (req, res) => {
   const { centerId, date, time, name, phone, content } = req.body;
@@ -37,7 +38,6 @@ const postBooking = (req, res) => {
 };
 
 const getBookingListByUserId = (req, res) => {
-  const { date } = req.query;
   const { id } = req.decoded;
 
   booking
@@ -55,7 +55,6 @@ const getBookingListByUserId = (req, res) => {
       ],
       where: {
         userId: id,
-        date: date,
       },
     })
     .then((data) => {
@@ -109,18 +108,19 @@ const getBookingListByCenterId = (req, res) => {
     });
 };
 
-const checkBooking = (req, res) => {
-  const { centerId, bookingId, isCheck } = req.body;
+const checkBooking = async (req, res) => {
+  const { bookingId, isCheck } = req.body;
 
   booking
     .update(
       {
         bookingState: isCheck ? 'used' : 'notUsed',
+        usedDate: isCheck ? moment().format('YYYY-MM-DD') : null,
+        usedTime: isCheck ? moment().format('HH:mm:ss') : null,
       },
       {
         where: {
           id: bookingId,
-          centerId: centerId,
         },
       }
     )
@@ -165,10 +165,41 @@ const reviewBooking = (t, bookingId) => {
   });
 };
 
+const modifyBooking = (req, res) => {
+  const { bookingId, date, time, name, phone, content } = req.body;
+
+  booking
+    .update(
+      {
+        date: date,
+        time: time,
+        name: name,
+        phone: phone,
+        content: content,
+      },
+      {
+        where: {
+          id: bookingId,
+        },
+      }
+    )
+    .then((result) => {
+      if (result[0] !== 0) {
+        res.status(200).json(`bookingId ${bookingId} is modified`);
+      } else {
+        res.status(200).json('nothing changed');
+      }
+    })
+    .catch((err) => {
+      res.status(400).json(err);
+    });
+};
+
 module.exports = {
   postBooking: postBooking,
   getBookingListByUserId: getBookingListByUserId,
   getBookingListByCenterId: getBookingListByCenterId,
   checkBooking: checkBooking,
   reviewBooking: reviewBooking,
+  modifyBooking: modifyBooking,
 };

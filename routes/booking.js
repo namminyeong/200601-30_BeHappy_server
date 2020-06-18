@@ -28,6 +28,8 @@ router.patch(
 );
 
 // * PATCH /booking
+router.patch('/', utils.checkToken, bookingController.booking.modifyBooking);
+
 // * DELETE /booking
 
 module.exports = router;
