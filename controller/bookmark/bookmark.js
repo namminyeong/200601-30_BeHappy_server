@@ -65,11 +65,7 @@ const getBookmark = async (req, res) => {
           roadAddressName: ele.roadAddressName,
           phone: ele.phone,
           rateAvg: ele.rateAvg,
-          specialties: ele.specialties.map((ele2) => {
-            return {
-              name: ele2.name,
-            };
-          }),
+          specialties: ele.specialties.map((ele2) => ele2.name),
         };
       });
       res.status(200).json({ centers: newCenters });
@@ -97,11 +93,7 @@ const findCenter = (centerId) => {
           roadAddressName: data.roadAddressName,
           phone: data.phone,
           rateAvg: data.rateAvg,
-          specialties: data.specialties.map((ele) => {
-            return {
-              name: ele.name,
-            };
-          }),
+          specialties: data.specialties.map((ele) => ele.name),
         });
       })
       .catch((err) => {

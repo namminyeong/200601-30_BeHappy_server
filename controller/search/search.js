@@ -146,11 +146,7 @@ const postCenterInfo = (rawInfo) => {
           phone: result.phone,
           rateAvg: +result.rateAvg.toFixed(1),
           specialties: result.specialties
-            ? result.specialties.map((ele) => {
-                return {
-                  name: ele.name,
-                };
-              })
+            ? result.specialties.map((ele) => ele.name)
             : [],
         };
         if (!created) {
@@ -169,9 +165,8 @@ const postCenterInfo = (rawInfo) => {
 const filterCentersWithTags = (centers, tags) => {
   if (!tags) return centers;
   const result = centers.filter((ele) => {
-    if (!ele.specialties) return false;
     for (let i = 0; i < ele.specialties.length; i++) {
-      if (tags.includes(ele.specialties[i].name)) return true;
+      if (tags.includes(ele.specialties[i])) return true;
     }
     return false;
   });
@@ -258,7 +253,7 @@ const getImportanceByCenter = async (
 ) => {
   let importance = 0;
   for (let i = 0; i < center.specialties.length; i++) {
-    if (userSpetialties.includes(center.specialties[i].name)) {
+    if (userSpetialties.includes(center.specialties[i])) {
       importance += 0.5;
       break;
     }
