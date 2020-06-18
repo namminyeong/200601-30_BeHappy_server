@@ -414,10 +414,7 @@ const modifyReview = (req, res) => {
   const { reviewId, centerId, rate, content, specialties } = req.body;
   db.sequelize.transaction().then(async (t) => {
     try {
-      const updateResult = await updateReview(t, reviewId, rate, content);
-      if (updateResult === 'nothing changed') {
-        return res.status(200).json(updateResult);
-      }
+      await updateReview(t, reviewId, rate, content);
 
       await reviewAndSpecialty.destroy({
         where: {
@@ -471,6 +468,7 @@ const updateReview = (t, reviewId, rate, content) => {
         }
       )
       .then((result) => {
+        console.log(result);
         if (result[0] !== 0) {
           return resolve(`reviewId ${reviewId} is changed`);
         } else {
