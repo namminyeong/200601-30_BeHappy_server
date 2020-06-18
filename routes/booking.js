@@ -12,14 +12,22 @@ router.get(
   utils.checkToken,
   bookingController.booking.getBookingListByUserId
 );
+
 // * GET /booking/center // 센터페이지에서 예약 리스트 가져오는 것, 상세페이지에서 예약 정보 가져오는 것 둘 다 대응 가능?
 router.get(
   '/center',
   utils.checkToken,
   bookingController.booking.getBookingListByCenterId
 );
+
+// * PATCH /booking/check
+router.patch(
+  '/check',
+  utils.checkToken,
+  bookingController.booking.checkBooking
+);
+
 // * PATCH /booking
 // * DELETE /booking
-// * POST /booking/treatment
 
 module.exports = router;

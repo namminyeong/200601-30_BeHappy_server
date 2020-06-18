@@ -109,8 +109,66 @@ const getBookingListByCenterId = (req, res) => {
     });
 };
 
+const checkBooking = (req, res) => {
+  const { centerId, bookingId, isCheck } = req.body;
+
+  booking
+    .update(
+      {
+        bookingState: isCheck ? 'used' : 'notUsed',
+      },
+      {
+        where: {
+          id: bookingId,
+          centerId: centerId,
+        },
+      }
+    )
+    .then((result) => {
+      if (result[0] !== 0) {
+        res
+          .status(200)
+          .json(`bookingId ${bookingId}'s bookingState is changed`);
+      } else {
+        res.status(200).json('nothing changed');
+      }
+    })
+    .catch((err) => {
+      res.status(400).json(err);
+    });
+};
+
+const reviewBooking = (t, bookingId) => {
+  return new Promise((resolve, reject) => {
+    booking
+      .update(
+        {
+          bookingState: 'reviewed',
+        },
+        {
+          where: {
+            id: bookingId,
+          },
+          transaction: t,
+        }
+      )
+      .then((result) => {
+        if (result[0] !== 0) {
+          resolve(`bookingId ${bookingId}'s bookingState is changed`);
+        } else {
+          resolve('nothing changed');
+        }
+      })
+      .catch((err) => {
+        reject(err);
+      });
+  });
+};
+
 module.exports = {
   postBooking: postBooking,
   getBookingListByUserId: getBookingListByUserId,
   getBookingListByCenterId: getBookingListByCenterId,
+  checkBooking: checkBooking,
+  reviewBooking: reviewBooking,
 };
