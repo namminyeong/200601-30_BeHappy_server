@@ -10,6 +10,7 @@ const postBooking = (req, res) => {
       where: {
         date: date,
         time: time,
+        isDeleted: false,
       },
       defaults: {
         name: name,
@@ -55,6 +56,7 @@ const getBookingListByUserId = (req, res) => {
       ],
       where: {
         userId: id,
+        isDeleted: false,
       },
     })
     .then((data) => {
@@ -91,6 +93,7 @@ const getBookingListByCenterId = (req, res) => {
       where: {
         centerId: centerId,
         date: date,
+        isDeleted: false,
       },
     })
     .then((data) => {
@@ -121,6 +124,7 @@ const checkBooking = async (req, res) => {
       {
         where: {
           id: bookingId,
+          isDeleted: false,
         },
       }
     )
@@ -148,6 +152,7 @@ const reviewBooking = (t, bookingId) => {
         {
           where: {
             id: bookingId,
+            isDeleted: false,
           },
           transaction: t,
         }
@@ -180,12 +185,38 @@ const modifyBooking = (req, res) => {
       {
         where: {
           id: bookingId,
+          isDeleted: false,
         },
       }
     )
     .then((result) => {
       if (result[0] !== 0) {
         res.status(200).json(`bookingId ${bookingId} is modified`);
+      } else {
+        res.status(200).json('nothing changed');
+      }
+    })
+    .catch((err) => {
+      res.status(400).json(err);
+    });
+};
+
+const deleteBooking = (req, res) => {
+  const { bookingId } = req.body;
+  booking
+    .update(
+      {
+        isDeleted: true,
+      },
+      {
+        where: {
+          id: bookingId,
+        },
+      }
+    )
+    .then((result) => {
+      if (result[0] !== 0) {
+        res.status(200).json(`bookingId ${bookingId} is deleted`);
       } else {
         res.status(200).json('nothing changed');
       }
@@ -202,4 +233,5 @@ module.exports = {
   checkBooking: checkBooking,
   reviewBooking: reviewBooking,
   modifyBooking: modifyBooking,
+  deleteBooking: deleteBooking,
 };

@@ -31,5 +31,6 @@ router.patch(
 router.patch('/', utils.checkToken, bookingController.booking.modifyBooking);
 
 // * DELETE /booking
+router.delete('/', utils.checkToken, bookingController.booking.deleteBooking);
 
 module.exports = router;
