@@ -36,6 +36,43 @@ const postBooking = (req, res) => {
     });
 };
 
+const getBookingListByUserId = (req, res) => {
+  const { date } = req.query;
+  const { id } = req.decoded;
+
+  booking
+    .findAll({
+      attributes: [
+        'id',
+        'date',
+        'time',
+        'name',
+        'phone',
+        'content',
+        'bookingState',
+        'usedDate',
+        'usedTime',
+      ],
+      where: {
+        userId: id,
+        date: date,
+      },
+    })
+    .then((data) => {
+      if (data.length > 0) {
+        res.status(200).json(data);
+      } else {
+        res.status(403).json({
+          errorCode: 8,
+          message: 'there is no booking by userId.',
+        });
+      }
+    })
+    .catch((err) => {
+      res.status(400).json(err);
+    });
+};
+
 const getBookingListByCenterId = (req, res) => {
   const { centerId, date } = req.query;
 
@@ -62,8 +99,8 @@ const getBookingListByCenterId = (req, res) => {
         res.status(200).json(data);
       } else {
         res.status(403).json({
-          errorCode: 8,
-          message: 'there is no booking.',
+          errorCode: 9,
+          message: 'there is no booking by centerId.',
         });
       }
     })
@@ -74,5 +111,6 @@ const getBookingListByCenterId = (req, res) => {
 
 module.exports = {
   postBooking: postBooking,
+  getBookingListByUserId: getBookingListByUserId,
   getBookingListByCenterId: getBookingListByCenterId,
 };
