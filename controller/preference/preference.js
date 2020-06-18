@@ -25,7 +25,7 @@ const postPreferenceForUser = async (req, res) => {
           postUserAndSpecialty(t, userId, resultFindSpecialties[i])
         );
       }
-      Promise.all(promisesSpecialty);
+      await Promise.all(promisesSpecialty);
 
       const resultFindKindOfCenters = await findKindOfCenter(t, kindOfCenters);
       let promisesKindOfCenters = [];
@@ -34,7 +34,7 @@ const postPreferenceForUser = async (req, res) => {
           postUserAndKindOfCenter(t, userId, resultFindKindOfCenters[i])
         );
       }
-      Promise.all(promisesKindOfCenters);
+      await Promise.all(promisesKindOfCenters);
 
       const resultFindCity = await findCity(t, city);
       await postCity(t, userId, resultFindCity);
@@ -59,9 +59,8 @@ const postPreferenceForCenter = async (req, res) => {
           postCenterAndSpecialty(t, centerId, resultFindSpecialties[i])
         );
       }
-      Promise.all(promisesSpecialty).then(() => {
-        t.commit();
-      });
+      await Promise.all(promisesSpecialty);
+      t.commit();
       res.status(200).json('complete post preference!');
     } catch (err) {
       res.status(400).json(err);
@@ -295,7 +294,7 @@ const patchPreferenceForUser = async (req, res) => {
           postUserAndSpecialty(t, id, resultFindSpecialties[i])
         );
       }
-      Promise.all(promisesSpecialty);
+      await Promise.all(promisesSpecialty);
 
       await userAndKindOfCenter.destroy({
         where: {
@@ -310,7 +309,7 @@ const patchPreferenceForUser = async (req, res) => {
           postUserAndKindOfCenter(t, id, resultFindKindOfCenters[i])
         );
       }
-      Promise.all(promisesKindOfCenters);
+      await Promise.all(promisesKindOfCenters);
 
       const resultFindCity = await findCity(t, city);
       await postCity(t, id, resultFindCity);
@@ -344,11 +343,11 @@ const patchPreferenceForCenter = (req, res) => {
           postCenterAndSpecialty(t, centerId, resultFindSpecialties[i])
         );
       }
-      Promise.all(promisesSpecialty).then(async () => {
-        await syncSpecialtyFromReviewToCenter(t, centerId);
-        t.commit();
-      });
+      await Promise.all(promisesSpecialty);
 
+      await syncSpecialtyFromReviewToCenter(t, centerId);
+
+      t.commit();
       res.status(200).json('complete modify preference!');
     } catch (err) {
       res.status(400).json(err);

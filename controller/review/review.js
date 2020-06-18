@@ -34,22 +34,21 @@ const postReview = (req, res) => {
           postReviewAndSpecialty(t, resultReview.id, resultFindSpecialties[i])
         );
       }
-      Promise.all(promises).then(async () => {
-        await syncSpecialtyFromReviewToCenter(t, centerId);
+      await Promise.all(promises);
 
-        const resultArrayOfReview = await getArrayOfReviewByCenterId(
-          t,
-          centerId
-        );
-        await applyRateAvgOnCenter(
-          t,
-          centerId,
-          resultArrayOfReview[0].centerRateAvg,
-          rate,
-          resultArrayOfReview.length
-        );
-        t.commit();
-      });
+      const resultArrayOfReview = await getArrayOfReviewByCenterId(t, centerId);
+      await syncSpecialtyFromReviewToCenter(t, centerId, resultArrayOfReview);
+
+      const totalReviewRate = resultArrayOfReview.reduce((pre, cur) => {
+        return pre + cur.rate;
+      }, 0);
+      await applyRateAvgOnCenter(
+        t,
+        centerId,
+        totalReviewRate,
+        resultArrayOfReview.length
+      );
+      t.commit();
 
       res.status(200).json(resultReview);
     } catch (err) {
@@ -58,11 +57,9 @@ const postReview = (req, res) => {
   });
 };
 
-const applyRateAvgOnCenter = (t, centerId, prevAvg, newRate, listLength) => {
+const applyRateAvgOnCenter = (t, centerId, totalRate, listLength) => {
+  const newAvg = totalRate / listLength;
   return new Promise((resolve, reject) => {
-    const oldWeight = (listLength - 1) / listLength;
-    const newWeight = 1 / listLength;
-    const newAvg = prevAvg * oldWeight + newRate * newWeight;
     center
       .update(
         {
@@ -107,7 +104,7 @@ const getArrayOfReviewByCenterId = (t, centerId) => {
         const results = data.map((ele) => {
           return {
             reviewId: ele.id,
-            centerRateAvg: ele.anonymousUser.center.rateAvg,
+            rate: ele.rate,
             specialties: ele.specialties.map((ele2) => ele2.id),
           };
         });
@@ -361,8 +358,14 @@ const getReviewByCenterId = (req, res) => {
     });
 };
 
-const syncSpecialtyFromReviewToCenter = async (t, centerId) => {
-  const resultArrayOfReview = await getArrayOfReviewByCenterId(t, centerId);
+const syncSpecialtyFromReviewToCenter = async (
+  t,
+  centerId,
+  resultArrayOfReview
+) => {
+  if (!resultArrayOfReview) {
+    resultArrayOfReview = await getArrayOfReviewByCenterId(t, centerId);
+  }
   const setTotalSpecialties = resultArrayOfReview.reduce((pre, cur) => {
     cur.specialties.forEach((ele) => {
       pre.add(ele);
@@ -375,7 +378,7 @@ const syncSpecialtyFromReviewToCenter = async (t, centerId) => {
   for (let i = 0; i < arrTotalSpecialties.length; i++) {
     promises.push(postCenterAndSpecialty(t, centerId, arrTotalSpecialties[i]));
   }
-  Promise.all(promises);
+  await Promise.all(promises);
 };
 
 const postCenterAndSpecialty = (t, centerId, specialtyId) => {
@@ -404,9 +407,79 @@ const postCenterAndSpecialty = (t, centerId, specialtyId) => {
   });
 };
 
+const modifyReview = (req, res) => {
+  const { reviewId, centerId, rate, content, specialties } = req.body;
+  db.sequelize.transaction().then(async (t) => {
+    try {
+      await updateReview(t, reviewId, rate, content);
+
+      await reviewAndSpecialty.destroy({
+        where: {
+          reviewId: reviewId,
+        },
+        transaction: t,
+      });
+      const resultFindSpecialties = await findSpecialties(t, specialties);
+      let promises = [];
+      for (let i = 0; i < resultFindSpecialties.length; i++) {
+        promises.push(
+          postReviewAndSpecialty(t, reviewId, resultFindSpecialties[i])
+        );
+      }
+      await Promise.all(promises);
+
+      const resultArrayOfReview = await getArrayOfReviewByCenterId(t, centerId);
+      await syncSpecialtyFromReviewToCenter(t, centerId, resultArrayOfReview);
+
+      const totalReviewRate = resultArrayOfReview.reduce((pre, cur) => {
+        return pre + cur.rate;
+      }, 0);
+      await applyRateAvgOnCenter(
+        t,
+        centerId,
+        totalReviewRate,
+        resultArrayOfReview.length
+      );
+      t.commit();
+      res.status(200).json(`reviewId ${reviewId} is modified`);
+    } catch (err) {
+      res.status(400).json(err);
+    }
+  });
+};
+
+const updateReview = (t, reviewId, rate, content) => {
+  return new Promise((resolve, reject) => {
+    review
+      .update(
+        {
+          rate: rate,
+          content: content,
+        },
+        {
+          where: {
+            id: reviewId,
+          },
+          transaction: t,
+        }
+      )
+      .then((result) => {
+        if (result[0] !== 0) {
+          return resolve(`reviewId ${reviewId} is changed`);
+        } else {
+          return resolve('nothing changed');
+        }
+      })
+      .catch((err) => {
+        reject(err);
+      });
+  });
+};
+
 module.exports = {
   postReview: postReview,
   getReviewByUserId: getReviewByUserId,
   getReviewByCenterId: getReviewByCenterId,
   syncSpecialtyFromReviewToCenter: syncSpecialtyFromReviewToCenter,
+  modifyReview: modifyReview,
 };
