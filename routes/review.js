@@ -17,6 +17,9 @@ router.get(
 );
 
 // * PATCH /review
+router.patch('/', utils.checkToken, reviewController.review.modifyReview);
+
 // * DELETE /review
+router.delete('/', utils.checkToken, reviewController.review.deleteReview);
 
 module.exports = router;

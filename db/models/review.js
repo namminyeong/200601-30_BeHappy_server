@@ -18,6 +18,11 @@ module.exports = (sequelize, DataTypes) => {
           return moment.utc(this.getDataValue('date')).format('YYYY-MM-DD');
         },
       },
+      isDeleted: {
+        type: DataTypes.BOOLEAN,
+        defaultValue: false,
+        allowNull: false,
+      },
     },
     { timestamps: false }
   );

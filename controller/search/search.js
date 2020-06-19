@@ -337,6 +337,7 @@ const getReviewByCenterId = (centerId) => {
   return new Promise((resolve, reject) => {
     review
       .findAll({
+        where: { isDeleted: false },
         include: [
           {
             model: anonymousUser,
