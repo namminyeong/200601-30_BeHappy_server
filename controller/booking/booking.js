@@ -10,6 +10,7 @@ const postBooking = (req, res) => {
       where: {
         date: date,
         time: time,
+        centerId: centerId,
         isDeleted: false,
       },
       defaults: {
@@ -17,7 +18,6 @@ const postBooking = (req, res) => {
         phone: phone,
         content: content,
         userId: id,
-        centerId: centerId,
       },
     })
     .spread((result, created) => {
