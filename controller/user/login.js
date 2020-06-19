@@ -55,26 +55,11 @@ module.exports = {
             ? 1
             : -1
           : 0;
-
-        let name = data.centerAdmin
-          ? data.centerAdmin.center.centerName
-          : data.nickname;
-        let phone = data.centerAdmin
-          ? data.centerAdmin.center.phone
-          : data.phone;
-
-        res
-          .cookie('token', token)
-          .status(200)
-          .json({
-            token: token,
-            adminState: adminState,
-            userInfo: {
-              id: data.id,
-              name: name,
-              phone: phone,
-            },
-          });
+        res.cookie('token', token).status(200).json({
+          id: data.id,
+          token: token,
+          adminState: adminState,
+        });
       })
       .catch((err) => {
         res.status(400).send(err);

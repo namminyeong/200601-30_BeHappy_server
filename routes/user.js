@@ -20,4 +20,11 @@ router.get('/admin/request', userController.adminRequest.getAdminRequest);
 
 // * POST /user/admin/request
 router.post('/admin/request', userController.adminRequest.postAdminRequest);
+
+// * GET /user
+router.get('/', utils.checkToken, userController.user.getUserInfo);
+
+// * GET /user/admin
+router.get('/admin', utils.checkToken, userController.user.getCenterAdminInfo);
+
 module.exports = router;

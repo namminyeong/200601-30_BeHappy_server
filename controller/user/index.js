@@ -3,4 +3,5 @@ module.exports = {
   logout: require('./logout'),
   signup: require('./signup'),
   adminRequest: require('./adminRequest'),
+  user: require('./user'),
 };
