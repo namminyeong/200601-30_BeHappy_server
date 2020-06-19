@@ -1,4 +1,4 @@
-const { booking } = require('../../db/models');
+const { booking, center } = require('../../db/models');
 const moment = require('moment');
 
 const postBooking = (req, res) => {
@@ -58,6 +58,7 @@ const getBookingListByUserId = (req, res) => {
         userId: id,
         isDeleted: false,
       },
+      include: [{ model: center, attributes: ['id', 'centerName'] }],
     })
     .then((data) => {
       if (data.length > 0) {
