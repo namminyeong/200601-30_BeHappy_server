@@ -8,13 +8,15 @@ const {
 } = require('../../db/models');
 const db = require('../../db/models');
 const { Op } = require('sequelize');
+const { reviewBooking } = require('../../controller/booking/booking');
 
 const postReview = (req, res) => {
-  const { centerId, rate, content, specialties } = req.body;
+  const { centerId, rate, content, specialties, bookingId } = req.body;
   const { id } = req.decoded;
 
   db.sequelize.transaction().then(async (t) => {
     try {
+      await reviewBooking(t, bookingId);
       const resultAnonymousUser = await findOrCreateAnonymousUser(
         t,
         id,

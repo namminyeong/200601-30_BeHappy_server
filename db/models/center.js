@@ -32,6 +32,9 @@ module.exports = (sequelize, DataTypes) => {
     center.hasMany(models.anonymousUser, {
       foreignKey: 'centerId',
     });
+    center.hasMany(models.booking, {
+      foreignKey: 'centerId',
+    });
   };
   return center;
 };

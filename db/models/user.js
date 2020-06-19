@@ -47,6 +47,9 @@ module.exports = (sequelize, DataTypes) => {
     user.hasMany(models.anonymousUser, {
       foreignKey: 'userId',
     });
+    user.hasMany(models.booking, {
+      foreignKey: 'userId',
+    });
   };
   return user;
 };

@@ -5,5 +5,6 @@ module.exports = {
   preferenceController: require('./preference'),
   bookmarkController: require('./bookmark'),
   reviewController: require('./review'),
+  bookingController: require('./booking'),
   centerController: require('./center'),
 };
