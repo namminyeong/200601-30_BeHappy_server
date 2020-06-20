@@ -22,4 +22,11 @@ router.patch('/', utils.checkToken, reviewController.review.modifyReview);
 // * DELETE /review
 router.delete('/', utils.checkToken, reviewController.review.deleteReview);
 
+// * GET /review/analysis
+router.get(
+  '/analysis',
+  utils.checkToken,
+  reviewController.rate.getReviewAnalysis
+);
+
 module.exports = router;
