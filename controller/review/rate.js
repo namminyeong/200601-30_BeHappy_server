@@ -40,13 +40,16 @@ const getReviewAnalysis = async (req, res) => {
   });
 
   const rateAvgs = Object.values(rateAvgOfEachMonth);
-  const totalAvgOfAvgs = rateAvgs.reduce((pre, cur) => pre + cur);
+  const totalAvgOfAvgs = rateAvgs.reduce((pre, cur) => pre + cur, 0);
 
   res.status(200).json({
     reviewCountOfEachMonth: reviewCountOfEachMonth,
     rateAvgOfEachMonth: rateAvgOfEachMonth,
     reviewCountOfEachRate: reviewCountOfEachRate,
-    totalAvg: +(totalAvgOfAvgs / rateAvgs.length).toFixed(1),
+    totalAvg:
+      rateAvgs.length === 0
+        ? 0
+        : +(totalAvgOfAvgs / rateAvgs.length).toFixed(1),
   });
 };
 
