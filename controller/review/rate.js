@@ -1,13 +1,17 @@
 /* eslint-disable no-prototype-builtins */
-const { review } = require('../../db/models');
+const { review, anonymousUser, center } = require('../../db/models');
 const moment = require('moment');
 const sequelize = require('sequelize');
 const Op = sequelize.Op;
 
 const getReviewAnalysis = async (req, res) => {
-  const { startDate, endDate } = req.query;
+  const { centerId, startDate, endDate } = req.query;
 
-  const allReviews = await findAllReviewWithinPeriod(startDate, endDate);
+  const allReviews = await findAllReviewWithinPeriod(
+    centerId,
+    startDate,
+    endDate
+  );
 
   const reviewCountOfEachMonth = {};
   const rateAvgOfEachMonth = {};
@@ -53,7 +57,7 @@ const getReviewAnalysis = async (req, res) => {
   });
 };
 
-const findAllReviewWithinPeriod = (startDate, endDate) => {
+const findAllReviewWithinPeriod = (centerId, startDate, endDate) => {
   return new Promise((resolve, reject) => {
     review
       .findAll({
@@ -65,6 +69,13 @@ const findAllReviewWithinPeriod = (startDate, endDate) => {
           },
           isDeleted: false,
         },
+        include: [
+          {
+            model: anonymousUser,
+            where: { centerId: centerId },
+            include: [{ model: center }],
+          },
+        ],
         order: [['date', 'ASC']],
       })
       .then((data) => {
