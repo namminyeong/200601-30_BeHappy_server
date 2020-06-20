@@ -1,13 +1,17 @@
 /* eslint-disable no-prototype-builtins */
-const { review } = require('../../db/models');
+const { review, anonymousUser, center } = require('../../db/models');
 const moment = require('moment');
 const sequelize = require('sequelize');
 const Op = sequelize.Op;
 
 const getReviewAnalysis = async (req, res) => {
-  const { startDate, endDate } = req.query;
+  const { centerId, startDate, endDate } = req.query;
 
-  const allReviews = await findAllReviewWithinPeriod(startDate, endDate);
+  const allReviews = await findAllReviewWithinPeriod(
+    centerId,
+    startDate,
+    endDate
+  );
 
   const reviewCountOfEachMonth = {};
   const rateAvgOfEachMonth = {};
@@ -40,17 +44,20 @@ const getReviewAnalysis = async (req, res) => {
   });
 
   const rateAvgs = Object.values(rateAvgOfEachMonth);
-  const totalAvgOfAvgs = rateAvgs.reduce((pre, cur) => pre + cur);
+  const totalAvgOfAvgs = rateAvgs.reduce((pre, cur) => pre + cur, 0);
 
   res.status(200).json({
     reviewCountOfEachMonth: reviewCountOfEachMonth,
     rateAvgOfEachMonth: rateAvgOfEachMonth,
     reviewCountOfEachRate: reviewCountOfEachRate,
-    totalAvg: +(totalAvgOfAvgs / rateAvgs.length).toFixed(1),
+    totalAvg:
+      rateAvgs.length === 0
+        ? 0
+        : +(totalAvgOfAvgs / rateAvgs.length).toFixed(1),
   });
 };
 
-const findAllReviewWithinPeriod = (startDate, endDate) => {
+const findAllReviewWithinPeriod = (centerId, startDate, endDate) => {
   return new Promise((resolve, reject) => {
     review
       .findAll({
@@ -62,6 +69,13 @@ const findAllReviewWithinPeriod = (startDate, endDate) => {
           },
           isDeleted: false,
         },
+        include: [
+          {
+            model: anonymousUser,
+            where: { centerId: centerId },
+            include: [{ model: center }],
+          },
+        ],
         order: [['date', 'ASC']],
       })
       .then((data) => {
