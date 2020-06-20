@@ -50,10 +50,7 @@ const getReviewAnalysis = async (req, res) => {
     reviewCountOfEachMonth: reviewCountOfEachMonth,
     rateAvgOfEachMonth: rateAvgOfEachMonth,
     reviewCountOfEachRate: reviewCountOfEachRate,
-    totalAvg:
-      rateAvgs.length === 0
-        ? 0
-        : +(totalAvgOfAvgs / rateAvgs.length).toFixed(1),
+    totalAvg: rateAvgs.length === 0 ? 0 : totalAvgOfAvgs / rateAvgs.length,
   });
 };
 
