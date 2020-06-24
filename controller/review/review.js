@@ -169,9 +169,7 @@ const findAnonymousUserByCenterId = (t, centerId) => {
         transaction: t,
       })
       .then((data) => {
-        const result = data.map((ele) => {
-          return ele.name;
-        });
+        const result = data.map((ele) => ele.name);
         resolve(result);
       })
       .catch((err) => {
@@ -349,11 +347,7 @@ const getReviewByCenterId = (req, res) => {
           content: ele.content,
           anonymousName: ele.anonymousUser.anonymousName,
           centerName: ele.anonymousUser.center.centerName,
-          specialties: ele.specialties.map((ele2) => {
-            return {
-              name: ele2.name,
-            };
-          }),
+          specialties: ele.specialties.map((ele2) => ele2.name),
         };
       });
       res.status(200).json(results);

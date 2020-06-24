@@ -265,9 +265,7 @@ const getPreferenceForCenter = async (req, res) => {
       include: [{ model: specialty }],
     })
     .then((data) => {
-      let results = data.specialties.map((ele) => {
-        return { name: ele.name };
-      });
+      let results = data.specialties.map((ele) => ele.name);
       res.status(200).json({ specialties: results });
     })
     .catch((err) => {

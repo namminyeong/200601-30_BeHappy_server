@@ -19,9 +19,7 @@ const getCenterInfo = (req, res) => {
           roadAddressName: data.roadAddressName,
           phone: data.phone,
           rateAvg: +data.rateAvg.toFixed(1),
-          specialties: data.specialties.map((ele) => {
-            return { name: ele.name };
-          }),
+          specialties: data.specialties.map((ele) => ele.name),
         };
         res.status(200).json(result);
       } else {
